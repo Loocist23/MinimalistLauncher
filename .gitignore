@@ -1,0 +1,90 @@
+# Android Studio & IntelliJ
+*.iml
+.idea/
+
+# Android
+.gradle/
+build/
+app/build/
+core/build/
+data/build/
+domain/build/
+gradle/gradle-daemon-jvm.properties
+
+# Local configuration (SDK path, signing configs, etc.)
+local.properties
+
+# Android Studio specific files
+.idea/caches
+.idea/libraries
+.idea/modules.xml
+.idea/workspace.xml
+.idea/navEditor.xml
+.idea/assetWizardSettings.xml
+.idea/buildServer.xml
+.idea/codeInsightSettings.xml
+.idea/codeTemplates.xml
+.idea/dictionaries
+.idea/encodings.xml
+.idea/fileTemplates
+.idea/misc.xml
+.idea/options
+.idea/runConfigurations
+.idea/shelf
+.idea/vcs.xml
+.idea/copyright
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db
+
+# Generated binary files
+*.apk
+*.ap_
+*.aab
+*.aar
+*.so
+*.bin
+*.jar
+
+# Asset and resource outputs (keep assets directory itself)
+!**/src/main/assets/
+!**/src/main/jniLibs/
+
+# Signing files - NEVER COMMIT THESE
+*.jks
+*.keystore
+*.pem
+*.pk8
+*.p12
+
+# Google Services / Firebase (contain API keys)
+google-services.json
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE & Editor
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs & Test Results
+*.log
+**/build/reports/
+**/build/test-results/
+
+# C++ / NDK
+.externalNativeBuild
+.cxx/
+
+# Captures
+/captures
+
+# Kotlin
+.kotlin/
