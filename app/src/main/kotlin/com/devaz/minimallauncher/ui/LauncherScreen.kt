@@ -152,7 +152,7 @@ fun AppItem(appInfo: AppInfo, onClick: () -> Unit) {
                 .aspectRatio(1f),
             contentAlignment = Alignment.Center
         ) {
-            AppIcon(drawable = appInfo.icon, appName = appInfo.appName)
+            AppIcon(drawable = appInfo.icon, appName = appInfo.appName, packageName = appInfo.packageName)
         }
 
         Spacer(modifier = Modifier.size(16.dp))
@@ -179,35 +179,25 @@ fun AppItem(appInfo: AppInfo, onClick: () -> Unit) {
 
 /**
  * Composant pour afficher l'icône d'une application.
- * Gère la conversion du Drawable en ImageBitmap.
+ * Utilise un cache pour éviter de recréer les bitmaps à chaque recomposition.
+ * 
+ * @param drawable Drawable de l'application
+ * @param appName Nom de l'application (utilisé comme clé de cache et fallback)
+ * @param packageName Package name (utilisé comme clé de cache unique)
  */
 @Composable
-fun AppIcon(drawable: Drawable?, appName: String) {
-    val bitmap = remember(drawable) {
-        try {
-            // Convertir Drawable en Bitmap
-            // Essayer d'abord comme BitmapDrawable
-            (drawable as? android.graphics.drawable.BitmapDrawable)?.bitmap?.asImageBitmap()
-                // Sinon essayer de créer un bitmap à partir du drawable
-                ?: run {
-                    val bitmap = android.graphics.Bitmap.createBitmap(
-                        drawable?.intrinsicWidth ?: 48,
-                        drawable?.intrinsicHeight ?: 48,
-                        android.graphics.Bitmap.Config.ARGB_8888
-                    )
-                    val canvas = android.graphics.Canvas(bitmap)
-                    drawable?.setBounds(0, 0, canvas.width, canvas.height)
-                    drawable?.draw(canvas)
-                    bitmap.asImageBitmap()
-                }
-        } catch (e: Exception) {
-            null
-        }
+fun AppIcon(drawable: Drawable?, appName: String, packageName: String? = null) {
+    // Utiliser le packageName comme clé de cache, ou un hash du drawable
+    val cacheKey = packageName ?: "${appName.hashCode()}"
+    
+    // Obtenir l'ImageBitmap depuis le cache
+    val imageBitmap = remember(drawable, cacheKey) {
+        appIconCache.get(cacheKey, drawable)
     }
     
-    if (bitmap != null) {
+    if (imageBitmap != null) {
         Image(
-            bitmap = bitmap,
+            bitmap = imageBitmap,
             contentDescription = appName,
             modifier = Modifier.size(36.dp)
         )

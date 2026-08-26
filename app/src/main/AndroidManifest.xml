@@ -21,8 +21,9 @@
             android:exported="true"
             android:label="MinimalLauncher"
             android:theme="@style/Theme.MinimalLauncher"
+            android:screenOrientation="portrait"
             android:resizeableActivity="true"
-            android:configChanges="orientation|screenSize|keyboardHidden">
+            android:configChanges="screenSize|keyboardHidden">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />

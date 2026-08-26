@@ -45,10 +45,7 @@ import java.time.format.DateTimeFormatter
  * Écran d'accueil avec heure et applications favorites.
  */
 @Composable
-fun HomeScreen(
-    onDrawerOpen: () -> Unit,
-    modifier: Modifier = Modifier
-) {
+fun HomeScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val viewModel: AppViewModel = viewModel()
     
@@ -98,20 +95,17 @@ fun HomeScreen(
         
         Spacer(modifier = Modifier.weight(1f))
         
-        // Bouton pour ouvrir le tiroir
+        // Indicateur pour le geste de swipe vers le haut
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
+                .padding(bottom = 24.dp),
             contentAlignment = Alignment.Center
         ) {
-            Icon(
-                imageVector = Icons.Default.Apps,
-                contentDescription = "Toutes les applications",
-                tint = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
-                modifier = Modifier
-                    .size(48.dp)
-                    .clickable(onClick = onDrawerOpen)
+            Text(
+                text = "↑ Scroll vers le haut pour les apps",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.4f)
             )
         }
     }

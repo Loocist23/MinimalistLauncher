@@ -21,16 +21,29 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     
     private val _error = MutableLiveData<String?>()
     val error: LiveData<String?> = _error
+    
+    // Cache de toutes les applications
+    private var allAppsCache: List<AppInfo> = emptyList()
 
     /**
      * Charge la liste de toutes les applications.
+     * Met en cache la liste complète pour éviter de recharger depuis PackageManager.
      */
     fun loadApps() {
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                // Si on a déjà les apps en cache, les retourner directement
+                if (allAppsCache.isNotEmpty()) {
+                    _apps.value = allAppsCache
+                    _error.value = null
+                    _isLoading.value = false
+                    return@launch
+                }
+                
                 val appsList = appRepository.getAllApps()
-                _apps.value = appsList.sorted()
+                allAppsCache = appsList.sorted()
+                _apps.value = allAppsCache
                 _error.value = if (appsList.isEmpty()) {
                     "Aucune application trouvée ou permission refusée"
                 } else {
@@ -50,17 +63,22 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
 
     /**
      * Recherche des applications par nom.
+     * Utilise le cache local au lieu de recharger depuis le repository.
      */
     fun searchApps(query: String) {
         viewModelScope.launch {
             _isLoading.value = true
             try {
+                // Filtrer localement depuis le cache
                 val filteredApps = if (query.isBlank()) {
-                    appRepository.getAllApps()
+                    allAppsCache
                 } else {
-                    appRepository.searchApps(query)
+                    allAppsCache.filter {
+                        it.appName.contains(query, ignoreCase = true) ||
+                        it.packageName.contains(query, ignoreCase = true)
+                    }
                 }
-                _apps.value = filteredApps.sorted()
+                _apps.value = filteredApps
                 _error.value = if (filteredApps.isEmpty()) {
                     "Aucune application correspondante"
                 } else {
@@ -73,5 +91,14 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _isLoading.value = false
             }
         }
+    }
+    
+    /**
+     * Réinitialise le cache et recharge les applications.
+     * Utile après un changement de permission ou pour forcer un rafraîchissement.
+     */
+    fun refreshApps() {
+        allAppsCache = emptyList()
+        loadApps()
     }
 }

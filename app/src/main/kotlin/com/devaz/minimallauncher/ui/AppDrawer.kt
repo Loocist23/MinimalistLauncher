@@ -6,6 +6,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.gestures.draggable
 import androidx.compose.foundation.gestures.rememberDraggableState
 import androidx.compose.foundation.gestures.scrollable
@@ -36,6 +37,7 @@ import androidx.compose.material3.SearchBar
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -67,7 +69,8 @@ fun AppDrawer(
     onClose: () -> Unit,
     onScrollStarted: () -> Unit = {},
     onScrollStopped: () -> Unit = {},
-    isAnimating: Boolean = false
+    isAnimating: Boolean = false,
+    swipeThreshold: Float = 100f
 ) {
     val context = LocalContext.current
     val viewModel: AppViewModel = viewModel()
@@ -79,28 +82,44 @@ fun AppDrawer(
     val coroutineScope = rememberCoroutineScope()
     
     // Tracker pour détecter si on est en train de scroller
+    // Utiliser derivedStateOf pour éviter les recompositions inutiles
     val isScrolling = remember { mutableStateOf(false) }
     
-    // Mettre à jour les callbacks parent
+    // Mettre à jour les callbacks parent avec un délai pour éviter les appels trop fréquents
     LaunchedEffect(isScrolling.value) {
         if (isScrolling.value) {
             onScrollStarted()
         } else {
-            onScrollStopped()
+            // Petit délai pour s'assurer que le scroll est vraiment terminé
+            kotlinx.coroutines.delay(100)
+            if (!isScrolling.value) {
+                onScrollStopped()
+            }
         }
     }
     
-    // Filtrer et trier les apps
-    val filteredApps = remember(apps, searchQuery) {
-        val filtered = if (searchQuery.isBlank()) {
-            apps
-        } else {
-            apps.filter {
-                it.appName.contains(searchQuery, ignoreCase = true) ||
-                it.packageName.contains(searchQuery, ignoreCase = true)
+    // Filtrer et trier les apps - utiliser derivedStateOf pour optimiser
+    val filteredApps by remember(apps, searchQuery) {
+        derivedStateOf {
+            val filtered = if (searchQuery.isBlank()) {
+                apps
+            } else {
+                apps.filter {
+                    it.appName.contains(searchQuery, ignoreCase = true) ||
+                    it.packageName.contains(searchQuery, ignoreCase = true)
+                }
             }
+            filtered.sortedBy { it.appName.uppercase() }
         }
-        filtered.sortedBy { it.appName.uppercase() }
+    }
+    
+    // Pré-calculer le groupement par lettre pour éviter de le faire dans le content de LazyColumn
+    val groupedApps by remember(filteredApps) {
+        derivedStateOf {
+            filteredApps.groupBy { 
+                it.appName.uppercase().firstOrNull()?.toString() ?: "#" 
+            }.toSortedMap(String.CASE_INSENSITIVE_ORDER)
+        }
     }
     
     // Charger les apps au démarrage du drawer
@@ -218,11 +237,7 @@ fun AppDrawer(
                         state = listState,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        // Groupe par lettre initiale
-                        val groupedApps = filteredApps.groupBy { 
-                            it.appName.uppercase().firstOrNull()?.toString() ?: "#" 
-                        }.toSortedMap(String.CASE_INSENSITIVE_ORDER)
-                        
+                        // Utiliser le groupement pré-calculé
                         groupedApps.forEach { (letter, appsInGroup) ->
                             item {
                                 // En-tête de la lettre
@@ -237,7 +252,7 @@ fun AppDrawer(
                                 )
                             }
                             
-                            items(appsInGroup) { appInfo ->
+                            items(appsInGroup, key = { it.packageName }) { appInfo ->
                                 AppDrawerItem(
                                     appInfo = appInfo,
                                     onClick = { com.devaz.minimallauncher.ui.launchApp(context, appInfo) }
@@ -272,15 +287,19 @@ fun AppDrawer(
             
             // Index alphabétique à droite
             AlphabetIndex(
-                apps = filteredApps,
+                groupedApps = groupedApps,
                 listState = listState,
                 onLetterSelected = { letter ->
                     coroutineScope.launch {
-                        val index = filteredApps.indexOfFirst {
-                            it.appName.uppercase().startsWith(letter.uppercase())
-                        }
-                        if (index >= 0) {
-                            listState.scrollToItem(index)
+                        // Trouver la première app de cette lettre
+                        val appsInGroup = groupedApps[letter]
+                        if (!appsInGroup.isNullOrEmpty()) {
+                            // Trouver l'index global de la première app de ce groupe
+                            val firstApp = appsInGroup.first()
+                            val globalIndex = filteredApps.indexOf(firstApp)
+                            if (globalIndex >= 0) {
+                                listState.scrollToItem(globalIndex)
+                            }
                         }
                     }
                 }
@@ -294,18 +313,16 @@ fun AppDrawer(
  */
 @Composable
 fun AlphabetIndex(
-    apps: List<AppInfo>,
+    groupedApps: Map<String, List<AppInfo>>,
     listState: LazyListState,
     onLetterSelected: (String) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val hoveredLetter = remember { mutableStateOf<String?>(null) }
     
-    // Obtenir les lettres uniques triées
-    val letters = remember(apps) {
-        val lettersSet = apps.map { 
-            it.appName.uppercase().firstOrNull()?.toString() ?: "#" 
-        }.toMutableSet()
+    // Obtenir les lettres uniques triées depuis groupedApps
+    val letters = remember(groupedApps) {
+        val lettersSet = groupedApps.keys.toMutableSet()
         lettersSet.add("#")
         lettersSet.sortedWith(String.CASE_INSENSITIVE_ORDER)
     }
@@ -357,6 +374,9 @@ fun AlphabetIndex(
  */
 @Composable
 fun AppDrawerItem(appInfo: AppInfo, onClick: () -> Unit) {
+    // Utiliser remember pour stabiliser la référence
+    val stableAppInfo = remember(appInfo) { appInfo }
+    
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -371,7 +391,11 @@ fun AppDrawerItem(appInfo: AppInfo, onClick: () -> Unit) {
                 .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small),
             contentAlignment = Alignment.Center
         ) {
-            AppIcon(drawable = appInfo.icon, appName = appInfo.appName)
+            AppIcon(
+                drawable = stableAppInfo.icon, 
+                appName = stableAppInfo.appName, 
+                packageName = stableAppInfo.packageName
+            )
         }
         
         Spacer(modifier = Modifier.width(12.dp))
@@ -381,12 +405,12 @@ fun AppDrawerItem(appInfo: AppInfo, onClick: () -> Unit) {
             modifier = Modifier.weight(1f)
         ) {
             Text(
-                text = appInfo.appName,
+                text = stableAppInfo.appName,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             Text(
-                text = appInfo.packageName,
+                text = stableAppInfo.packageName,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
                 maxLines = 1,
