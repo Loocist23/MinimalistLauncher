@@ -21,6 +21,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalConfiguration
@@ -33,6 +34,7 @@ import com.devaz.minimallauncher.ui.AppDrawer
 import com.devaz.minimallauncher.ui.HomeScreen
 import com.devaz.minimallauncher.ui.PermissionScreen
 import com.devaz.minimallauncher.ui.theme.MinimalLauncherTheme
+import com.devaz.minimallauncher.viewmodel.AppViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
@@ -74,6 +76,12 @@ fun AppContent() {
     val coroutineScope = rememberCoroutineScope()
     val configuration = LocalConfiguration.current
     val density = LocalDensity.current
+    
+    // Charger les apps dès l'ouverture du launcher (pas seulement quand on ouvre le tiroir)
+    val viewModel: AppViewModel = viewModel()
+    LaunchedEffect(Unit) {
+        viewModel.loadApps()
+    }
     
     // Calculer la hauteur de l'écran en pixels
     val screenHeight = with(density) { configuration.screenHeightDp.dp.toPx() }

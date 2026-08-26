@@ -122,11 +122,7 @@ fun AppDrawer(
         }
     }
     
-    // Charger les apps au démarrage du drawer
-    LaunchedEffect(Unit) {
-        viewModel.loadApps()
-    }
-    
+    // Les apps sont déjà chargées dans AppContent au démarrage du launcher
     // Connection pour détecter le scroll
     val nestedScrollConnection = remember {
         object : NestedScrollConnection {
