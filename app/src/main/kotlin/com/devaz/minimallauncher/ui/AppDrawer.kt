@@ -70,7 +70,7 @@ fun AppDrawer(
     onScrollStarted: () -> Unit = {},
     onScrollStopped: () -> Unit = {},
     isAnimating: Boolean = false,
-    swipeThreshold: Float = 100f
+    swipeThreshold: Float = 50f
 ) {
     val context = LocalContext.current
     val viewModel: AppViewModel = viewModel()

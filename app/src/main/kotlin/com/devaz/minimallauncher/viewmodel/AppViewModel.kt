@@ -7,7 +7,12 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.devaz.minimallauncher.model.AppInfo
 import com.devaz.minimallauncher.repository.AppRepository
+import com.devaz.minimallauncher.ui.appIconCache
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     
@@ -28,6 +33,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     /**
      * Charge la liste de toutes les applications.
      * Met en cache la liste complète pour éviter de recharger depuis PackageManager.
+     * Pré-charge les icônes en arrière-plan pour une ouverture ultra-fluide.
      */
     fun loadApps() {
         viewModelScope.launch {
@@ -41,7 +47,11 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     return@launch
                 }
                 
-                val appsList = appRepository.getAllApps()
+                // Charger les apps sur Dispatchers.IO pour ne pas bloquer le thread UI
+                val appsList = withContext(Dispatchers.IO) {
+                    appRepository.getAllApps()
+                }
+                
                 allAppsCache = appsList.sorted()
                 _apps.value = allAppsCache
                 _error.value = if (appsList.isEmpty()) {
@@ -49,6 +59,13 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 } else {
                     null
                 }
+                
+                // Pré-charger toutes les icônes en arrière-plan en parallèle
+                // Cela améliore la fluidité quand on ouvre le tiroir
+                if (allAppsCache.isNotEmpty()) {
+                    preloadAppIcons(allAppsCache)
+                }
+                
             } catch (e: SecurityException) {
                 _error.value = "Permission QUERY_ALL_PACKAGES refusée. Activez-la dans les paramètres."
                 _apps.value = emptyList()
@@ -57,6 +74,33 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _apps.value = emptyList()
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+    
+    /**
+     * Pré-charge toutes les icônes des applications en parallèle.
+     * Utilise async/await pour un chargement optimal.
+     */
+    private suspend fun preloadAppIcons(apps: List<AppInfo>) {
+        // Ne pas bloquer l'UI, lancer sur Dispatchers.IO
+        withContext(Dispatchers.IO) {
+            // Lancer le pré-chargement de toutes les icônes en parallèle
+            val preloadJobs = apps.map { app ->
+                async {
+                    // Appeler get() sur le cache pour pré-charger l'icône
+                    // Le cache gère déjà la déduplication des requêtes
+                    appIconCache.get(app.packageName, app.icon)
+                }
+            }
+            
+            // Attendre que toutes les icônes soient pré-chargées
+            // (mais ne pas bloquer l'UI, c'est déjà sur Dispatchers.IO)
+            try {
+                awaitAll(*preloadJobs.toTypedArray())
+            } catch (e: Exception) {
+                // Ignorer les erreurs de pré-chargement d'icônes individuelles
+                // Elles seront chargées à la demande si nécessaire
             }
         }
     }
