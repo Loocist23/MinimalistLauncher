@@ -4,12 +4,19 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -25,6 +32,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.foundation.background
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -82,6 +91,119 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+/**
+ * Écran de chargement premium avec animations fluides
+ */
+@Composable
+fun LoadingScreen() {
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.background),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(24.dp)
+        ) {
+            // Logo/icône du launcher avec animation pulse
+            val pulseScale = remember { Animatable(1f) }
+            LaunchedEffect(Unit) {
+                while (true) {
+                    pulseScale.animateTo(
+                        1.15f,
+                        animationSpec = tween(800, easing = LinearEasing)
+                    )
+                    pulseScale.animateTo(
+                        1f,
+                        animationSpec = tween(800, easing = LinearEasing)
+                    )
+                }
+            }
+            
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .graphicsLayer { 
+                        scaleX = pulseScale.value
+                        scaleY = pulseScale.value
+                    },
+                contentAlignment = Alignment.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .clip(MaterialTheme.shapes.extraLarge)
+                        .background(
+                            MaterialTheme.colorScheme.primary,
+                            MaterialTheme.shapes.extraLarge
+                        )
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(32.dp))
+            
+            // Animation de points de chargement (loading dots)
+            LoadingDotsAnimation()
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                text = "Chargement des applications...",
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                style = MaterialTheme.typography.bodyLarge
+            )
+        }
+    }
+}
+
+/**
+ * Animation de 3 points qui apparaissent en séquence
+ */
+@Composable
+fun LoadingDotsAnimation() {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.Center,
+        modifier = Modifier.height(30.dp)
+    ) {
+        repeat(3) { index ->
+            val delay = index * 150L
+            val alpha = remember { Animatable(0f) }
+            val scale = remember { Animatable(0.5f) }
+            
+            LaunchedEffect(Unit) {
+                while (true) {
+                    // Animer alpha et scale en parallèle
+                    alpha.animateTo(1f, animationSpec = tween(400, delayMillis = delay.toInt()))
+                    scale.animateTo(1f, animationSpec = tween(400, delayMillis = delay.toInt()))
+                    
+                    alpha.animateTo(0f, animationSpec = tween(400, delayMillis = (1000 - delay).toInt()))
+                    scale.animateTo(0.5f, animationSpec = tween(400, delayMillis = (1000 - delay).toInt()))
+                }
+            }
+            
+            Box(
+                modifier = Modifier
+                    .size(12.dp)
+                    .graphicsLayer { 
+                        scaleX = scale.value
+                        scaleY = scale.value
+                        this.alpha = alpha.value
+                    }
+                    .clip(MaterialTheme.shapes.extraSmall)
+                    .background(MaterialTheme.colorScheme.primary)
+            )
+            
+            if (index < 2) {
+                Spacer(modifier = Modifier.width(8.dp))
+            }
+        }
+    }
+}
+
 @Composable
 fun AppContent() {
     val activity = LocalContext.current as MainActivity
@@ -102,7 +224,7 @@ fun AppContent() {
     val screenHeight = with(density) { configuration.screenHeightDp.dp.toPx() }
     
     // Seuils
-    val minThreshold = 10f       // Seuil minimal pour éviter les déclenchements accidentels
+    val minThreshold = 20f       // Seuil minimal pour éviter les déclenchements accidentels
     val fullOpenThreshold = 100f // Seuil pour ouverture complète
     
     // Offset Y animé du tiroir
@@ -135,66 +257,8 @@ fun AppContent() {
             }
         )
     } else if (isLoading) {
-        // État de chargement initial - afficher un indicateur
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background),
-            contentAlignment = Alignment.Center
-        ) {
-            // Shimmer/Placeholder pour une expérience premium
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-            ) {
-                // Indicateurs de chargement pour les apps
-                repeat(5) { index ->
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(64.dp)
-                            .padding(vertical = 8.dp)
-                            .clip(MaterialTheme.shapes.medium)
-                            .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
-                            .padding(16.dp),
-                        contentAlignment = Alignment.CenterStart
-                    ) {
-                        Box(
-                            modifier = Modifier
-                                .size(48.dp)
-                                .clip(MaterialTheme.shapes.small)
-                                .background(MaterialTheme.colorScheme.surface)
-                        )
-                        Spacer(modifier = Modifier.width(16.dp))
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth(0.7f)
-                                .height(24.dp)
-                                .clip(MaterialTheme.shapes.small)
-                                .background(MaterialTheme.colorScheme.surface)
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // Indicateurs de progression
-                CircularProgressIndicator(
-                    color = MaterialTheme.colorScheme.primary,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Text(
-                    text = "Chargement des applications...",
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                    style = MaterialTheme.typography.bodyMedium
-                )
-            }
-        }
+        // État de chargement initial - Animation premium
+        LoadingScreen()
     } else {
         // Contenu principal - apps chargées
         Box(

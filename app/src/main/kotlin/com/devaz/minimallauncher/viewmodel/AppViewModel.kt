@@ -1,6 +1,11 @@
 package com.devaz.minimallauncher.viewmodel
 
+import android.app.AppOpsManager
 import android.app.Application
+import android.app.usage.UsageStats
+import android.app.usage.UsageStatsManager
+import android.content.Context
+import android.os.Process
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
@@ -13,6 +18,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.util.concurrent.TimeUnit
 
 class AppViewModel(application: Application) : AndroidViewModel(application) {
     
@@ -34,6 +40,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      * Charge la liste de toutes les applications.
      * Met en cache la liste complète pour éviter de recharger depuis PackageManager.
      * Pré-charge les icônes en arrière-plan pour une ouverture ultra-fluide.
+     * Trie par fréquence d'utilisation (les plus utilisées en premier).
      */
     fun loadApps() {
         viewModelScope.launch {
@@ -52,7 +59,8 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                     appRepository.getAllApps()
                 }
                 
-                allAppsCache = appsList.sorted()
+                // Trier par fréquence d'utilisation (les plus utilisées en premier)
+                allAppsCache = sortAppsByUsage(appsList)
                 _apps.value = allAppsCache
                 _error.value = if (appsList.isEmpty()) {
                     "Aucune application trouvée ou permission refusée"
@@ -74,6 +82,55 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 _apps.value = emptyList()
             } finally {
                 _isLoading.value = false
+            }
+        }
+    }
+    
+    /**
+     * Trie les applications par fréquence d'utilisation (plus utilisées en premier).
+     * Utilise UsageStatsManager si disponible, sinon trie par ordre alphabétique.
+     */
+    private suspend fun sortAppsByUsage(apps: List<AppInfo>): List<AppInfo> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val usageStatsManager = getApplication<Application>().getSystemService(Context.USAGE_STATS_SERVICE) as UsageStatsManager
+                
+                // Vérifier si on a la permission PACKAGE_USAGE_STATS
+                val appOps = getApplication<Application>().getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
+                val mode = appOps.checkOpNoThrow(
+                    AppOpsManager.OPSTR_GET_USAGE_STATS,
+                    Process.myUid(),
+                    getApplication<Application>().packageName
+                )
+                
+                if (mode == AppOpsManager.MODE_ALLOWED) {
+                    // On a la permission, on peut récupérer les stats
+                    val timeNow = System.currentTimeMillis()
+                    val stats = usageStatsManager.queryUsageStats(
+                        UsageStatsManager.INTERVAL_DAILY,
+                        timeNow - TimeUnit.DAYS.toMillis(30),
+                        timeNow
+                    )
+                    
+                    // Créer une map packageName -> launchCount
+                    val usageCounts = mutableMapOf<String, Int>()
+                    stats.forEach { stat ->
+                        if (stat.totalTimeInForeground > 0) {
+                            usageCounts[stat.packageName] = (usageCounts[stat.packageName] ?: 0) + 1
+                        }
+                    }
+                    
+                    // Trier les apps par count décroissant, puis par nom
+                    apps.sortedWith(compareByDescending<AppInfo> { 
+                        usageCounts[it.packageName] ?: 0 
+                    }.thenBy { it.appName.lowercase() })
+                } else {
+                    // Pas de permission, trier par ordre alphabétique
+                    apps.sortedBy { it.appName.lowercase() }
+                }
+            } catch (e: Exception) {
+                // En cas d'erreur, trier par ordre alphabétique
+                apps.sortedBy { it.appName.lowercase() }
             }
         }
     }

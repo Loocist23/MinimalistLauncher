@@ -405,13 +405,14 @@ fun AppDrawerItem(appInfo: AppInfo, onClick: () -> Unit) {
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            Text(
-                text = stableAppInfo.packageName,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            // Package name masqué mais toujours utilisé pour la recherche
+            // Text(
+            //     text = stableAppInfo.packageName,
+            //     style = MaterialTheme.typography.bodySmall,
+            //     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
+            //     maxLines = 1,
+            //     overflow = TextOverflow.Ellipsis
+            // )
         }
     }
 }
