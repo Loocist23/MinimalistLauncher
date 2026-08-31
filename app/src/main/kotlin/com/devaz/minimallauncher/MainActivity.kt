@@ -204,6 +204,9 @@ fun LoadingDotsAnimation() {
     }
 }
 
+// Énumération pour la direction du swipe
+enum class DragDirection { UP, DOWN, NONE }
+
 @Composable
 fun AppContent() {
     val activity = LocalContext.current as MainActivity
@@ -230,10 +233,13 @@ fun AppContent() {
     // Offset Y animé du tiroir
     // screenHeight = complètement caché (en haut de l'écran)
     // 0 = complètement visible
-    val drawerOffset = remember { Animatable(0f) }
+    val drawerOffset = remember { Animatable(screenHeight) }
     
     // Tracker pour savoir si on est en train d'interagir
     val isInteracting = remember { mutableStateOf(false) }
+    
+    // Tracker pour la direction du swipe
+    val lastDragDirection = remember { mutableStateOf(DragDirection.NONE) }
     
     // Fermer complètement le tiroir (appelée par AppDrawer)
     fun closeDrawer() {
@@ -291,39 +297,40 @@ fun AppContent() {
                                 return@detectVerticalDragGestures
                             }
                             
-                            // dragAmount > 0 = vers le bas, dragAmount < 0 = vers le haut
-                            // On inverse : swiper vers le haut (dragAmount < 0) ouvre le tiroir
-                            val newOffset = (drawerOffset.value - dragAmount).coerceIn(0f, screenHeight)
+                            // dragAmount > 0 = vers le bas (ferme), dragAmount < 0 = vers le haut (ouvre)
+                            // Offset initial = screenHeight (caché)
+                            // Swipe vers le haut depuis le haut = offset diminue = tiroir monte = OUVRE
+                            val newOffset = (drawerOffset.value + dragAmount).coerceIn(0f, screenHeight)
                             coroutineScope.launch {
                                 drawerOffset.snapTo(newOffset)
                             }
+                            
+                            // Mémoriser la direction du swipe
+                            if (dragAmount < 0) {
+                                lastDragDirection.value = DragDirection.UP
+                            } else if (dragAmount > 0) {
+                                lastDragDirection.value = DragDirection.DOWN
+                            }
+                            
                             change.consume()
                         },
                         onDragEnd = {
-                            val currentValue = drawerOffset.value
-                            val halfWay = screenHeight / 2f
-                            
-                            // Si on a swipé vers le haut (dragAmount négatif), on ouvre
-                            // Si on a swipé vers le bas (dragAmount positif), on ferme
-                            if (currentValue < halfWay) {
-                                // Swipe vers le haut - ouvrir le tiroir
+                            // On vérifie la direction du swipe, pas la position finale
+                            // dragAmount < 0 = swipe vers le haut = ouvrir
+                            // dragAmount > 0 = swipe vers le bas = fermer
+                            // On utilise un état pour mémoriser la direction du swipe
+                            if (lastDragDirection.value == DragDirection.UP) {
                                 openDrawer()
-                            } else if (currentValue > halfWay) {
-                                // Swipe vers le bas - fermer le tiroir
+                            } else if (lastDragDirection.value == DragDirection.DOWN) {
                                 closeDrawer()
                             }
+                            // Réinitialiser la direction
+                            lastDragDirection.value = DragDirection.NONE
                         },
                         onDragCancel = {
-                            val currentValue = drawerOffset.value
-                            val halfWay = screenHeight / 2f
-                            
-                            if (currentValue < halfWay) {
-                                // Annulation après swipe vers le haut - ouvrir
-                                openDrawer()
-                            } else if (currentValue > halfWay) {
-                                // Annulation après swipe vers le bas - fermer
-                                closeDrawer()
-                            }
+                            // Réinitialiser la direction et fermer le tiroir
+                            lastDragDirection.value = DragDirection.NONE
+                            closeDrawer()
                         }
                     )
                 }
