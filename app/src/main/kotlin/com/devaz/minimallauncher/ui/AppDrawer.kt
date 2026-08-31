@@ -67,6 +67,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun AppDrawer(
     onClose: () -> Unit,
+    onOpen: () -> Unit = {},
     onScrollStarted: () -> Unit = {},
     onScrollStopped: () -> Unit = {},
     isAnimating: Boolean = false,
@@ -155,6 +156,22 @@ fun AppDrawer(
                 if (isAnimating) {
                     // Bloquer tous les clics pendant l'animation
                     detectTapGestures {}
+                } else {
+                    // Détecter le swipe vers le haut pour ouvrir le tiroir
+                    detectVerticalDragGestures(
+                        onDragStart = { },
+                        onVerticalDrag = { change, dragAmount ->
+                            change.consume()
+                        },
+                        onDragEnd = {
+                            // Appeler onOpen quand on arrête de swiper
+                            onOpen()
+                        },
+                        onDragCancel = {
+                            // Appeler onOpen en cas d'annulation
+                            onOpen()
+                        }
+                    )
                 }
             }
     ) {

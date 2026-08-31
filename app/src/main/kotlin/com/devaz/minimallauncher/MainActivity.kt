@@ -228,9 +228,9 @@ fun AppContent() {
     val fullOpenThreshold = 100f // Seuil pour ouverture complète
     
     // Offset Y animé du tiroir
-    // screenHeight = complètement caché (en bas de l'écran)
+    // screenHeight = complètement caché (en haut de l'écran)
     // 0 = complètement visible
-    val drawerOffset = remember { Animatable(screenHeight) }
+    val drawerOffset = remember { Animatable(0f) }
     
     // Tracker pour savoir si on est en train d'interagir
     val isInteracting = remember { mutableStateOf(false) }
@@ -241,6 +241,21 @@ fun AppContent() {
             isInteracting.value = true
             drawerOffset.animateTo(
                 targetValue = screenHeight,
+                animationSpec = spring(
+                    dampingRatio = Spring.DampingRatioMediumBouncy,
+                    stiffness = Spring.StiffnessLow
+                )
+            )
+            isInteracting.value = false
+        }
+    }
+    
+    // Ouvrir le tiroir en swipant vers le haut depuis n'importe où sur l'écran
+    fun openDrawer() {
+        coroutineScope.launch {
+            isInteracting.value = true
+            drawerOffset.animateTo(
+                targetValue = 0f,
                 animationSpec = spring(
                     dampingRatio = Spring.DampingRatioMediumBouncy,
                     stiffness = Spring.StiffnessLow
@@ -266,7 +281,10 @@ fun AppContent() {
                 .fillMaxSize()
                 .pointerInput(Unit) {
                     detectVerticalDragGestures(
-                        onDragStart = {},
+                        onDragStart = {
+                            // Permettre le démarrage du swipe depuis n'importe où sur l'écran
+                            // (comme sur Xiaomi/Samsung)
+                        },
                         onVerticalDrag = { change, dragAmount ->
                             if (isInteracting.value) {
                                 change.consume()
@@ -274,7 +292,8 @@ fun AppContent() {
                             }
                             
                             // dragAmount > 0 = vers le bas, dragAmount < 0 = vers le haut
-                            val newOffset = (drawerOffset.value + dragAmount).coerceIn(0f, screenHeight)
+                            // On inverse : swiper vers le haut (dragAmount < 0) ouvre le tiroir
+                            val newOffset = (drawerOffset.value - dragAmount).coerceIn(0f, screenHeight)
                             coroutineScope.launch {
                                 drawerOffset.snapTo(newOffset)
                             }
@@ -284,40 +303,26 @@ fun AppContent() {
                             val currentValue = drawerOffset.value
                             val halfWay = screenHeight / 2f
                             
-                            if (currentValue > halfWay) {
+                            // Si on a swipé vers le haut (dragAmount négatif), on ouvre
+                            // Si on a swipé vers le bas (dragAmount positif), on ferme
+                            if (currentValue < halfWay) {
+                                // Swipe vers le haut - ouvrir le tiroir
+                                openDrawer()
+                            } else if (currentValue > halfWay) {
+                                // Swipe vers le bas - fermer le tiroir
                                 closeDrawer()
-                            } else if (currentValue < halfWay) {
-                                coroutineScope.launch {
-                                    isInteracting.value = true
-                                    drawerOffset.animateTo(
-                                        targetValue = 0f,
-                                        animationSpec = spring(
-                                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                                            stiffness = Spring.StiffnessLow
-                                        )
-                                    )
-                                    isInteracting.value = false
-                                }
                             }
                         },
                         onDragCancel = {
                             val currentValue = drawerOffset.value
                             val halfWay = screenHeight / 2f
                             
-                            if (currentValue > halfWay) {
+                            if (currentValue < halfWay) {
+                                // Annulation après swipe vers le haut - ouvrir
+                                openDrawer()
+                            } else if (currentValue > halfWay) {
+                                // Annulation après swipe vers le bas - fermer
                                 closeDrawer()
-                            } else if (currentValue < halfWay) {
-                                coroutineScope.launch {
-                                    isInteracting.value = true
-                                    drawerOffset.animateTo(
-                                        targetValue = 0f,
-                                        animationSpec = spring(
-                                            dampingRatio = Spring.DampingRatioMediumBouncy,
-                                            stiffness = Spring.StiffnessLow
-                                        )
-                                    )
-                                    isInteracting.value = false
-                                }
                             }
                         }
                     )
@@ -335,6 +340,7 @@ fun AppContent() {
             ) {
                 AppDrawer(
                     onClose = { closeDrawer() },
+                    onOpen = { openDrawer() },
                     onScrollStarted = { isInteracting.value = true },
                     onScrollStopped = { isInteracting.value = false },
                     isAnimating = isInteracting.value
