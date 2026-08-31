@@ -1,0 +1,274 @@
+{
+  "communities": {
+    "0": [
+      "app_src_main_kotlin_com_devaz_minimallauncher_mainactivity",
+      "app_src_main_kotlin_com_devaz_minimallauncher_mainactivity_appcontent",
+      "app_src_main_kotlin_com_devaz_minimallauncher_mainactivity_loadingdotsanimation",
+      "app_src_main_kotlin_com_devaz_minimallauncher_mainactivity_loadingscreen",
+      "app_src_main_kotlin_com_devaz_minimallauncher_mainactivity_mainactivity",
+      "app_src_main_kotlin_com_devaz_minimallauncher_mainactivity_mainactivity_checkqueryallpackagespermission",
+      "app_src_main_kotlin_com_devaz_minimallauncher_mainactivity_mainactivity_oncreate",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_homescreen",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_homescreen_favoriteapp",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_homescreen_favoriteappitem",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_homescreen_favoriteappsgrid",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_homescreen_homescreen",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_permissionscreen",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_permissionscreen_permissionscreen",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_theme_theme",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_theme_theme_minimallaunchertheme",
+      "bundle",
+      "componentactivity",
+      "modifier"
+    ],
+    "1": [
+      "androidviewmodel",
+      "app_src_main_kotlin_com_devaz_minimallauncher_viewmodel_appviewmodel",
+      "app_src_main_kotlin_com_devaz_minimallauncher_viewmodel_appviewmodel_appviewmodel",
+      "app_src_main_kotlin_com_devaz_minimallauncher_viewmodel_appviewmodel_appviewmodel_loadapps",
+      "app_src_main_kotlin_com_devaz_minimallauncher_viewmodel_appviewmodel_appviewmodel_preloadappicons",
+      "app_src_main_kotlin_com_devaz_minimallauncher_viewmodel_appviewmodel_appviewmodel_refreshapps",
+      "app_src_main_kotlin_com_devaz_minimallauncher_viewmodel_appviewmodel_appviewmodel_searchapps",
+      "app_src_main_kotlin_com_devaz_minimallauncher_viewmodel_appviewmodel_appviewmodel_sortappsbyusage",
+      "comparable",
+      "core_src_main_kotlin_com_devaz_minimallauncher_model_appinfo",
+      "core_src_main_kotlin_com_devaz_minimallauncher_model_appinfo_appinfo",
+      "core_src_main_kotlin_com_devaz_minimallauncher_model_appinfo_appinfo_compareto",
+      "livedata"
+    ],
+    "2": [
+      "androidx",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appdrawer",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appdrawer_alphabetindex",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appdrawer_appdrawer",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appdrawer_appdrawer_object_nestedscrollconnection_l128",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appdrawer_appdrawer_object_nestedscrollconnection_l128_onpostscroll",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appdrawer_appdrawer_object_nestedscrollconnection_l128_onprescroll",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appdrawer_appdraweritem",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_theme_color",
+      "lazyliststate",
+      "nestedscrollsource"
+    ],
+    "3": [
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appiconcache",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appiconcache_appiconcache",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appiconcache_appiconcache_clear",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appiconcache_appiconcache_convertdrawabletobitmap",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appiconcache_appiconcache_get",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appiconcache_appiconcache_remove",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appiconcache_appiconcache_size",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_appiconcache_kt_drawable",
+      "bitmap",
+      "imagebitmap"
+    ],
+    "4": [
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_launcherscreen",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_launcherscreen_appicon",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_launcherscreen_appitem",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_launcherscreen_kt_drawable",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_launcherscreen_launcherscreen",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_utils",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_utils_launchapp",
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_utils_launchappbypackage",
+      "context"
+    ],
+    "5": [
+      "android",
+      "data_src_main_kotlin_com_devaz_minimallauncher_repository_apprepository",
+      "data_src_main_kotlin_com_devaz_minimallauncher_repository_apprepository_apprepository",
+      "data_src_main_kotlin_com_devaz_minimallauncher_repository_apprepository_apprepository_getallapps",
+      "data_src_main_kotlin_com_devaz_minimallauncher_repository_apprepository_apprepository_getlaunchintent",
+      "data_src_main_kotlin_com_devaz_minimallauncher_repository_apprepository_apprepository_issystempackage",
+      "data_src_main_kotlin_com_devaz_minimallauncher_repository_apprepository_apprepository_searchapps",
+      "packagemanager"
+    ],
+    "6": [
+      "app_src_main_kotlin_com_devaz_minimallauncher_minimallauncherapplication",
+      "app_src_main_kotlin_com_devaz_minimallauncher_minimallauncherapplication_minimallauncherapplication",
+      "app_src_main_kotlin_com_devaz_minimallauncher_minimallauncherapplication_minimallauncherapplication_oncreate",
+      "application"
+    ],
+    "7": [
+      "gradlew",
+      "gradlew__entry",
+      "gradlew_die",
+      "gradlew_warn"
+    ],
+    "8": [
+      "app_src_androidtest_java_com_example_launcher_exampleinstrumentedtest",
+      "app_src_androidtest_java_com_example_launcher_exampleinstrumentedtest_exampleinstrumentedtest",
+      "app_src_androidtest_java_com_example_launcher_exampleinstrumentedtest_exampleinstrumentedtest_useappcontext"
+    ],
+    "9": [
+      "app_src_test_java_com_example_launcher_exampleunittest",
+      "app_src_test_java_com_example_launcher_exampleunittest_exampleunittest",
+      "app_src_test_java_com_example_launcher_exampleunittest_exampleunittest_addition_iscorrect"
+    ],
+    "10": [
+      "app_build_gradle"
+    ],
+    "11": [
+      "app_src_main_kotlin_com_devaz_minimallauncher_ui_theme_type"
+    ],
+    "12": [
+      "build_gradle"
+    ],
+    "13": [
+      "core_build_gradle"
+    ],
+    "14": [
+      "data_build_gradle"
+    ],
+    "15": [
+      "domain_build_gradle"
+    ],
+    "16": [
+      "settings_gradle"
+    ]
+  },
+  "cohesion": {
+    "0": 0.19883040935672514,
+    "1": 0.2692307692307692,
+    "2": 0.32727272727272727,
+    "3": 0.3333333333333333,
+    "4": 0.3888888888888889,
+    "5": 0.35714285714285715,
+    "6": 0.6666666666666666,
+    "7": 0.8333333333333334,
+    "8": 0.6666666666666666,
+    "9": 0.6666666666666666,
+    "10": 1.0,
+    "11": 1.0,
+    "12": 1.0,
+    "13": 1.0,
+    "14": 1.0,
+    "15": 1.0,
+    "16": 1.0
+  },
+  "gods": [
+    {
+      "id": "core_src_main_kotlin_com_devaz_minimallauncher_model_appinfo_appinfo",
+      "label": "AppInfo",
+      "degree": 19
+    },
+    {
+      "id": "app_src_main_kotlin_com_devaz_minimallauncher_viewmodel_appviewmodel_appviewmodel",
+      "label": "AppViewModel",
+      "degree": 14
+    },
+    {
+      "id": "data_src_main_kotlin_com_devaz_minimallauncher_repository_apprepository_apprepository",
+      "label": "AppRepository",
+      "degree": 8
+    },
+    {
+      "id": "app_src_main_kotlin_com_devaz_minimallauncher_mainactivity_appcontent",
+      "label": "AppContent()",
+      "degree": 7
+    },
+    {
+      "id": "app_src_main_kotlin_com_devaz_minimallauncher_ui_appdrawer_appdrawer",
+      "label": "AppDrawer()",
+      "degree": 7
+    },
+    {
+      "id": "app_src_main_kotlin_com_devaz_minimallauncher_ui_appdrawer_appdrawer_object_nestedscrollconnection_l128",
+      "label": "NestedScrollConnection",
+      "degree": 6
+    },
+    {
+      "id": "app_src_main_kotlin_com_devaz_minimallauncher_ui_appiconcache_appiconcache",
+      "label": "AppIconCache",
+      "degree": 6
+    },
+    {
+      "id": "app_src_main_kotlin_com_devaz_minimallauncher_ui_homescreen_homescreen",
+      "label": "HomeScreen()",
+      "degree": 5
+    },
+    {
+      "id": "app_src_main_kotlin_com_devaz_minimallauncher_ui_utils_launchapp",
+      "label": "launchApp()",
+      "degree": 5
+    },
+    {
+      "id": "app_src_main_kotlin_com_devaz_minimallauncher_mainactivity_mainactivity",
+      "label": "MainActivity",
+      "degree": 4
+    }
+  ],
+  "surprises": [
+    {
+      "source": "AppViewModel",
+      "target": "AppRepository",
+      "source_files": [
+        "app/src/main/kotlin/com/devaz/minimallauncher/viewmodel/AppViewModel.kt",
+        "data/src/main/kotlin/com/devaz/minimallauncher/repository/AppRepository.kt"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "calls",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "AlphabetIndex()",
+      "target": "AppInfo",
+      "source_files": [
+        "app/src/main/kotlin/com/devaz/minimallauncher/ui/AppDrawer.kt",
+        "core/src/main/kotlin/com/devaz/minimallauncher/model/AppInfo.kt"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "AppDrawerItem()",
+      "target": "AppInfo",
+      "source_files": [
+        "app/src/main/kotlin/com/devaz/minimallauncher/ui/AppDrawer.kt",
+        "core/src/main/kotlin/com/devaz/minimallauncher/model/AppInfo.kt"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "AppItem()",
+      "target": "AppInfo",
+      "source_files": [
+        "app/src/main/kotlin/com/devaz/minimallauncher/ui/LauncherScreen.kt",
+        "core/src/main/kotlin/com/devaz/minimallauncher/model/AppInfo.kt"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities"
+    },
+    {
+      "source": "launchApp()",
+      "target": "AppInfo",
+      "source_files": [
+        "app/src/main/kotlin/com/devaz/minimallauncher/ui/Utils.kt",
+        "core/src/main/kotlin/com/devaz/minimallauncher/model/AppInfo.kt"
+      ],
+      "confidence": "EXTRACTED",
+      "relation": "references",
+      "why": "connects across different repos/directories; bridges separate communities"
+    }
+  ],
+  "questions": [
+    {
+      "type": "bridge_node",
+      "question": "Why does `AppViewModel` connect `AppInfo` to `MainActivity.kt`, `AppDrawer.kt`, `LauncherScreen.kt`, `AppRepository`?",
+      "why": "High betweenness centrality (0.248) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `AppInfo` connect `AppInfo` to `AppDrawer.kt`, `LauncherScreen.kt`, `AppRepository`?",
+      "why": "High betweenness centrality (0.166) - this node is a cross-community bridge."
+    },
+    {
+      "type": "bridge_node",
+      "question": "Why does `AppRepository` connect `AppRepository` to `AppInfo`?",
+      "why": "High betweenness centrality (0.072) - this node is a cross-community bridge."
+    }
+  ]
+}

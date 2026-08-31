@@ -1,0 +1,134 @@
+{
+  "app/build.gradle.kts": {
+    "mtime": 1787775367163.8137,
+    "hash": "3773fdc5bd7fa39d0002104a605b204d"
+  },
+  "app/src/androidTest/java/com/example/launcher/ExampleInstrumentedTest.kt": {
+    "mtime": 1787583532606.1821,
+    "hash": "286a512bcb54f5d447d86162c0f5523a"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/MainActivity.kt": {
+    "mtime": 1787775454790.2246,
+    "hash": "eeecdd560c253884b43d705e8eaa6b33"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/MinimalLauncherApplication.kt": {
+    "mtime": 1787584894391.119,
+    "hash": "770db81770c3a07f634ea6b61191ca0c"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/AppDrawer.kt": {
+    "mtime": 1787775299954.4612,
+    "hash": "ae289c55bc9ea6f6cfa6d9b90c631a1d"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/AppIconCache.kt": {
+    "mtime": 1787767843451.4219,
+    "hash": "10fa74aa6bd6cec09644373d6e0b14f3"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/HomeScreen.kt": {
+    "mtime": 1787770554314.1938,
+    "hash": "a97abcbc07774e18a5f93aee5d37284a"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/LauncherScreen.kt": {
+    "mtime": 1787767868446.3464,
+    "hash": "6ae6bbc5e4132ec84914ff8c467177ae"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/PermissionScreen.kt": {
+    "mtime": 1787587641266.7268,
+    "hash": "43698e0967acb6ee305d2deddbb1c5be"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/Utils.kt": {
+    "mtime": 1787588668193.603,
+    "hash": "9f2f43aef73af71eb66e4f8c4f79814c"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/theme/Color.kt": {
+    "mtime": 1787586299261.5745,
+    "hash": "c3fc224056c133b0bd74fe06f7a1b3c8"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/theme/Theme.kt": {
+    "mtime": 1787586306665.661,
+    "hash": "e006bfda78799786ea6833d971ff068c"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/theme/Type.kt": {
+    "mtime": 1787586302436.838,
+    "hash": "09dfa49c6cda00261a973744d2c8750c"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/viewmodel/AppViewModel.kt": {
+    "mtime": 1787775480068.3164,
+    "hash": "1b1e145836bb460b347014b1b0771a31"
+  },
+  "app/src/test/java/com/example/launcher/ExampleUnitTest.kt": {
+    "mtime": 1787583532569.1814,
+    "hash": "20b3ca44b765a1075ebc5ca41e64f4a5"
+  },
+  "build.gradle.kts": {
+    "mtime": 1787586944247.484,
+    "hash": "7856530ac68ecbd595730067dc73b123"
+  },
+  "core/build.gradle.kts": {
+    "mtime": 1787585237006.5884,
+    "hash": "ebe0954ec0684c14fbecaec0bf1a3368"
+  },
+  "core/src/main/kotlin/com/devaz/minimallauncher/model/AppInfo.kt": {
+    "mtime": 1787585184156.5808,
+    "hash": "5a1925ebc5399947ee9d88710c88ffd6"
+  },
+  "data/build.gradle.kts": {
+    "mtime": 1787585130093.5679,
+    "hash": "a8d3236033c17e7d7de8ffd386c28a97"
+  },
+  "data/src/main/kotlin/com/devaz/minimallauncher/repository/AppRepository.kt": {
+    "mtime": 1787584517399.9878,
+    "hash": "7e18fd75fe99fe8f42188708a02c9ea4"
+  },
+  "domain/build.gradle.kts": {
+    "mtime": 1787585118718.0566,
+    "hash": "673db2db3691ec4c2a34fbafcf64a417"
+  },
+  "gradlew": {
+    "mtime": 1787583530577.1426,
+    "hash": "266606e78242737ef3da02a80ea0564d"
+  },
+  "settings.gradle.kts": {
+    "mtime": 1787586479839.5605,
+    "hash": "55a76b9dca73aff8a7f6a1004b9d9127"
+  },
+  "app/src/main/res/mipmap-hdpi/ic_launcher.png": {
+    "mtime": 1787776086598.052,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  },
+  "app/src/main/res/mipmap-hdpi/ic_launcher_round.png": {
+    "mtime": 1787776090819.1199,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  },
+  "app/src/main/res/mipmap-mdpi/ic_launcher.png": {
+    "mtime": 1787776086599.052,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  },
+  "app/src/main/res/mipmap-mdpi/ic_launcher_round.png": {
+    "mtime": 1787776090819.1199,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  },
+  "app/src/main/res/mipmap-xhdpi/ic_launcher.png": {
+    "mtime": 1787776086600.052,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  },
+  "app/src/main/res/mipmap-xhdpi/ic_launcher_round.png": {
+    "mtime": 1787776090820.1199,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  },
+  "app/src/main/res/mipmap-xxhdpi/ic_launcher.png": {
+    "mtime": 1787776086601.052,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  },
+  "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png": {
+    "mtime": 1787776090821.1199,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  },
+  "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png": {
+    "mtime": 1787775751280.5623,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  },
+  "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png": {
+    "mtime": 1787776090822.1199,
+    "hash": "015682e0fd7ada6164d2da63a7d7d926"
+  }
+}

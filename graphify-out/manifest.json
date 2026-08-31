@@ -1,0 +1,140 @@
+{
+  "app/build.gradle.kts": {
+    "mtime": 1787775367.1638138,
+    "seen": 1787859483.596343,
+    "ast_hash": "3773fdc5bd7fa39d0002104a605b204d",
+    "semantic_hash": "3773fdc5bd7fa39d0002104a605b204d"
+  },
+  "app/src/androidTest/java/com/example/launcher/ExampleInstrumentedTest.kt": {
+    "mtime": 1787583532.606182,
+    "seen": 1787859483.5963464,
+    "ast_hash": "286a512bcb54f5d447d86162c0f5523a",
+    "semantic_hash": "286a512bcb54f5d447d86162c0f5523a"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/MainActivity.kt": {
+    "mtime": 1787775454.7902246,
+    "seen": 1787859483.596348,
+    "ast_hash": "eeecdd560c253884b43d705e8eaa6b33",
+    "semantic_hash": "eeecdd560c253884b43d705e8eaa6b33"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/MinimalLauncherApplication.kt": {
+    "mtime": 1787584894.3911188,
+    "seen": 1787859483.596349,
+    "ast_hash": "770db81770c3a07f634ea6b61191ca0c",
+    "semantic_hash": "770db81770c3a07f634ea6b61191ca0c"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/AppDrawer.kt": {
+    "mtime": 1787775299.954461,
+    "seen": 1787859483.5963497,
+    "ast_hash": "ae289c55bc9ea6f6cfa6d9b90c631a1d",
+    "semantic_hash": "ae289c55bc9ea6f6cfa6d9b90c631a1d"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/AppIconCache.kt": {
+    "mtime": 1787767843.451422,
+    "seen": 1787859483.5963504,
+    "ast_hash": "10fa74aa6bd6cec09644373d6e0b14f3",
+    "semantic_hash": "10fa74aa6bd6cec09644373d6e0b14f3"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/HomeScreen.kt": {
+    "mtime": 1787770554.3141937,
+    "seen": 1787859483.5963514,
+    "ast_hash": "a97abcbc07774e18a5f93aee5d37284a",
+    "semantic_hash": "a97abcbc07774e18a5f93aee5d37284a"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/LauncherScreen.kt": {
+    "mtime": 1787767868.4463465,
+    "seen": 1787859483.5963523,
+    "ast_hash": "6ae6bbc5e4132ec84914ff8c467177ae",
+    "semantic_hash": "6ae6bbc5e4132ec84914ff8c467177ae"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/PermissionScreen.kt": {
+    "mtime": 1787587641.2667267,
+    "seen": 1787859483.596353,
+    "ast_hash": "43698e0967acb6ee305d2deddbb1c5be",
+    "semantic_hash": "43698e0967acb6ee305d2deddbb1c5be"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/Utils.kt": {
+    "mtime": 1787588668.193603,
+    "seen": 1787859483.596354,
+    "ast_hash": "9f2f43aef73af71eb66e4f8c4f79814c",
+    "semantic_hash": "9f2f43aef73af71eb66e4f8c4f79814c"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/theme/Color.kt": {
+    "mtime": 1787586299.2615743,
+    "seen": 1787859483.5963545,
+    "ast_hash": "c3fc224056c133b0bd74fe06f7a1b3c8",
+    "semantic_hash": "c3fc224056c133b0bd74fe06f7a1b3c8"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/theme/Theme.kt": {
+    "mtime": 1787586306.6656609,
+    "seen": 1787859483.5963557,
+    "ast_hash": "e006bfda78799786ea6833d971ff068c",
+    "semantic_hash": "e006bfda78799786ea6833d971ff068c"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/ui/theme/Type.kt": {
+    "mtime": 1787586302.4368377,
+    "seen": 1787859483.5963564,
+    "ast_hash": "09dfa49c6cda00261a973744d2c8750c",
+    "semantic_hash": "09dfa49c6cda00261a973744d2c8750c"
+  },
+  "app/src/main/kotlin/com/devaz/minimallauncher/viewmodel/AppViewModel.kt": {
+    "mtime": 1787775480.0683165,
+    "seen": 1787859483.596357,
+    "ast_hash": "1b1e145836bb460b347014b1b0771a31",
+    "semantic_hash": "1b1e145836bb460b347014b1b0771a31"
+  },
+  "app/src/test/java/com/example/launcher/ExampleUnitTest.kt": {
+    "mtime": 1787583532.5691812,
+    "seen": 1787859483.5963578,
+    "ast_hash": "20b3ca44b765a1075ebc5ca41e64f4a5",
+    "semantic_hash": "20b3ca44b765a1075ebc5ca41e64f4a5"
+  },
+  "build.gradle.kts": {
+    "mtime": 1787586944.247484,
+    "seen": 1787859483.5963585,
+    "ast_hash": "7856530ac68ecbd595730067dc73b123",
+    "semantic_hash": "7856530ac68ecbd595730067dc73b123"
+  },
+  "core/build.gradle.kts": {
+    "mtime": 1787585237.0065882,
+    "seen": 1787859483.5963593,
+    "ast_hash": "ebe0954ec0684c14fbecaec0bf1a3368",
+    "semantic_hash": "ebe0954ec0684c14fbecaec0bf1a3368"
+  },
+  "core/src/main/kotlin/com/devaz/minimallauncher/model/AppInfo.kt": {
+    "mtime": 1787585184.156581,
+    "seen": 1787859483.59636,
+    "ast_hash": "5a1925ebc5399947ee9d88710c88ffd6",
+    "semantic_hash": "5a1925ebc5399947ee9d88710c88ffd6"
+  },
+  "data/build.gradle.kts": {
+    "mtime": 1787585130.0935678,
+    "seen": 1787859483.5963607,
+    "ast_hash": "a8d3236033c17e7d7de8ffd386c28a97",
+    "semantic_hash": "a8d3236033c17e7d7de8ffd386c28a97"
+  },
+  "data/src/main/kotlin/com/devaz/minimallauncher/repository/AppRepository.kt": {
+    "mtime": 1787584517.3999877,
+    "seen": 1787859483.5963612,
+    "ast_hash": "7e18fd75fe99fe8f42188708a02c9ea4",
+    "semantic_hash": "7e18fd75fe99fe8f42188708a02c9ea4"
+  },
+  "domain/build.gradle.kts": {
+    "mtime": 1787585118.7180564,
+    "seen": 1787859483.5963619,
+    "ast_hash": "673db2db3691ec4c2a34fbafcf64a417",
+    "semantic_hash": "673db2db3691ec4c2a34fbafcf64a417"
+  },
+  "gradlew": {
+    "mtime": 1787583530.5771425,
+    "seen": 1787859483.5963628,
+    "ast_hash": "266606e78242737ef3da02a80ea0564d",
+    "semantic_hash": "266606e78242737ef3da02a80ea0564d"
+  },
+  "settings.gradle.kts": {
+    "mtime": 1787586479.8395605,
+    "seen": 1787859483.5963638,
+    "ast_hash": "55a76b9dca73aff8a7f6a1004b9d9127",
+    "semantic_hash": "55a76b9dca73aff8a7f6a1004b9d9127"
+  }
+}

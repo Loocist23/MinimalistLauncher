@@ -1,0 +1,75 @@
+{
+  "files": {
+    "code": [
+      "app/build.gradle.kts",
+      "app/src/androidTest/java/com/example/launcher/ExampleInstrumentedTest.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/MainActivity.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/MinimalLauncherApplication.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/ui/AppDrawer.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/ui/AppIconCache.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/ui/HomeScreen.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/ui/LauncherScreen.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/ui/PermissionScreen.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/ui/Utils.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/ui/theme/Color.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/ui/theme/Theme.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/ui/theme/Type.kt",
+      "app/src/main/kotlin/com/devaz/minimallauncher/viewmodel/AppViewModel.kt",
+      "app/src/test/java/com/example/launcher/ExampleUnitTest.kt",
+      "build.gradle.kts",
+      "core/build.gradle.kts",
+      "core/src/main/kotlin/com/devaz/minimallauncher/model/AppInfo.kt",
+      "data/build.gradle.kts",
+      "data/src/main/kotlin/com/devaz/minimallauncher/repository/AppRepository.kt",
+      "domain/build.gradle.kts",
+      "gradlew",
+      "settings.gradle.kts"
+    ],
+    "document": [],
+    "paper": [],
+    "image": [
+      "app/src/main/res/mipmap-hdpi/ic_launcher.png",
+      "app/src/main/res/mipmap-hdpi/ic_launcher_round.png",
+      "app/src/main/res/mipmap-mdpi/ic_launcher.png",
+      "app/src/main/res/mipmap-mdpi/ic_launcher_round.png",
+      "app/src/main/res/mipmap-xhdpi/ic_launcher.png",
+      "app/src/main/res/mipmap-xhdpi/ic_launcher_round.png",
+      "app/src/main/res/mipmap-xxhdpi/ic_launcher.png",
+      "app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png",
+      "app/src/main/res/mipmap-xxxhdpi/ic_launcher.png",
+      "app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png"
+    ],
+    "video": []
+  },
+  "total_files": 33,
+  "total_words": 10087,
+  "needs_graph": false,
+  "warning": "Corpus is ~10,087 words - fits in a single context window. You may not need a graph.",
+  "skipped_sensitive": [],
+  "graphifyignore_patterns": 59,
+  "git": {
+    "source_owner": "git",
+    "source_hash": "462bc9930d0e5bcf6d958c67809f28a147735658",
+    "branches": [
+      "master"
+    ],
+    "max_commits": 200,
+    "active_within_days": 30
+  },
+  "scope": {
+    "requested_mode": "all",
+    "resolved_mode": "all",
+    "source": "configured-default",
+    "root": ".",
+    "git_root": ".",
+    "head": "462bc9930d0e5bcf6d958c67809f28a147735658",
+    "candidate_count": null,
+    "included_count": 33,
+    "excluded_untracked_count": 0,
+    "excluded_ignored_count": 0,
+    "excluded_sensitive_count": 0,
+    "missing_committed_count": 0,
+    "warnings": [],
+    "recommendation": null
+  }
+}
