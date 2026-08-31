@@ -7,6 +7,10 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,8 +19,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.wrapContentSize
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -24,6 +33,7 @@ import androidx.compose.material.icons.filled.Apps
 import androidx.compose.material.icons.filled.Camera
 import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Clear
+import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Videocam
@@ -49,6 +59,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.devaz.minimallauncher.model.AppInfo
 import com.devaz.minimallauncher.viewmodel.AppViewModel
 import java.time.LocalDate
 import java.time.LocalTime
@@ -73,12 +84,13 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     }
     
     // State pour stocker les modifications des apps favorites
+    // Chaque position a un type spécifique avec son propre filtre
     val favoriteAppsState = remember { mutableStateOf(
         listOf(
-            FavoriteApp("Téléphone", Icons.Default.Call, "com.android.phone"),
-            FavoriteApp("Caméra", Icons.Default.Camera, "com.android.camera"),
-            FavoriteApp("Play Store", Icons.Default.PlayArrow, "com.android.vending"),
-            FavoriteApp("YouTube", Icons.Default.Videocam, "com.google.android.youtube")
+            FavoriteApp("Téléphone", Icons.Default.Call, "com.android.phone"),      // Position 0: Appels
+            FavoriteApp("Discord", Icons.Default.Groups, "com.discord"),            // Position 1: Réseaux sociaux
+            FavoriteApp("Play Store", Icons.Default.PlayArrow, "com.android.vending"), // Position 2: Stores
+            FavoriteApp("YouTube", Icons.Default.Videocam, "com.google.android.youtube") // Position 3: Vidéos
         )
     ) }
     
@@ -189,69 +201,91 @@ data class FavoriteApp(
 fun FavoriteAppItem(app: FavoriteApp, position: Int, onAppChange: (position: Int, newApp: FavoriteApp?) -> Unit) {
     val context = LocalContext.current
     
+    val viewModel: AppViewModel = viewModel()
+    val allApps by viewModel.apps.observeAsState(emptyList())
+    
     val showMenuState = remember { mutableStateOf(false) }
+    val showModifyDialogState = remember { mutableStateOf(false) }
     val showAppInfoDialogState = remember { mutableStateOf(false) }
     
     // Gestes pour l'interaction avec l'app
-    Column(
+    Box(
         modifier = Modifier
+            .wrapContentSize()
             .pointerInput(app) {
                 detectTapGestures(
                     onTap = {
-                        // Tap rapide pour afficher les infos
-                        showAppInfoDialogState.value = true
+                        // Tap pour lancer l'app
+                        com.devaz.minimallauncher.ui.launchAppByPackage(context, app.packageName)
                     },
                     onLongPress = {
-                        // Long press pour ouvrir le menu de personnalisation
+                        // Long press pour ouvrir le menu
                         showMenuState.value = true
                     }
                 )
             }
-            .clickable {
-                // Click pour lancer l'app (priorité)
-                com.devaz.minimallauncher.ui.launchAppByPackage(context, app.packageName)
-            }
             .padding(8.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
+        contentAlignment = Alignment.Center
     ) {
-        // Icône de l'application
-        Box(
-            modifier = Modifier
-                .size(64.dp)
-                .background(
-                    MaterialTheme.colorScheme.surfaceVariant,
-                    shape = MaterialTheme.shapes.medium
-                ),
-            contentAlignment = Alignment.Center
+        // Contenu de l'item d'app
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Icon(
-                imageVector = app.icon,
-                contentDescription = app.name,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(36.dp)
+            // Icône de l'application
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        MaterialTheme.colorScheme.surfaceVariant,
+                        shape = MaterialTheme.shapes.medium
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = app.icon,
+                    contentDescription = app.name,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(36.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Nom de l'application
+            Text(
+                text = app.name,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onBackground,
+                textAlign = TextAlign.Center
             )
         }
         
-        Spacer(modifier = Modifier.height(8.dp))
-        
-        // Nom de l'application
-        Text(
-            text = app.name,
-            style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onBackground,
-            textAlign = TextAlign.Center
-        )
-        
-        // Menu de personnalisation (apparaît sur long press)
+        // Nouveau menu simplifié (apparaît sur long press)
         if (showMenuState.value) {
-            AppCustomizationMenu(
-                position = position,
+            AppCustomizationSimpleMenu(
                 currentApp = app,
-                allApps = getAllAvailableApps(context),
                 onDismiss = { showMenuState.value = false },
+                onInfoClick = { 
+                    showMenuState.value = false
+                    showAppInfoDialogState.value = true
+                },
+                onModifyClick = {
+                    showMenuState.value = false
+                    showModifyDialogState.value = true
+                }
+            )
+        }
+        
+        // Dialog pour modifier l'app (liste des apps vidéo)
+        if (showModifyDialogState.value) {
+            AppModifyDialog(
+                currentApp = app,
+                allApps = allApps,
+                position = position,
+                onDismiss = { showModifyDialogState.value = false },
                 onAppSelect = { newApp ->
                     onAppChange(position, newApp)
-                    showMenuState.value = false
+                    showModifyDialogState.value = false
                 }
             )
         }
@@ -267,130 +301,249 @@ fun FavoriteAppItem(app: FavoriteApp, position: Int, onAppChange: (position: Int
 }
 
 /**
- * Obtient la liste de toutes les applications disponibles sur le device.
- */
-private fun getAllAvailableApps(context: Context): List<FavoriteApp> {
-    val packageManager = context.packageManager
-    val apps = mutableListOf<FavoriteApp>()
-    
-    try {
-        val packages = packageManager.getInstalledPackages(0)
-        packages.forEach { packageInfo ->
-            val appName = packageInfo.applicationInfo?.loadLabel(packageManager)?.toString() ?: packageInfo.packageName
-            val icon = packageInfo.applicationInfo?.loadIcon(packageManager)
-            
-            // On exclut les apps système importantes
-            val excludedPackages = listOf(
-                "com.android.phone",
-                "com.android.dialer",
-                "com.android.settings",
-                "com.android.systemui",
-                "com.google.android.googlequicksearchbox"
-            )
-            
-            if (!excludedPackages.any { packageInfo.packageName.contains(it, ignoreCase = true) }) {
-                apps.add(FavoriteApp(appName, Icons.Default.Apps, packageInfo.packageName))
-            }
-        }
-    } catch (e: Exception) {
-        // En cas d'erreur, on retourne une liste vide
-    }
-    
-    return apps
-}
-
-/**
- * Menu de personnalisation pour modifier une application à un emplacement spécifique.
+ * Menu simplifié avec options : Infos + Modifier.
  */
 @Composable
-fun AppCustomizationMenu(
-    position: Int,
+fun AppCustomizationSimpleMenu(
     currentApp: FavoriteApp,
-    allApps: List<FavoriteApp>,
     onDismiss: () -> Unit,
-    onAppSelect: (FavoriteApp?) -> Unit
+    onInfoClick: () -> Unit,
+    onModifyClick: () -> Unit
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Personnaliser l'emplacement ${position + 1}") },
+        title = { Text("Options pour ${currentApp.name}") },
         text = {
-            Column {
-                Text("Choisissez l'application à cet emplacement :")
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Liste des applications disponibles
-                allApps.forEach { app ->
-                    val isSelected = app.packageName == currentApp.packageName
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clickable { onAppSelect(app) }
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Bouton Infos
+                OutlinedButton(
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = {
+                        onInfoClick()
+                        onDismiss()
+                    }
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 8.dp)
                     ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Box(
-                                modifier = Modifier
-                                    .size(40.dp)
-                                    .background(
-                                        if (isSelected) MaterialTheme.colorScheme.primaryContainer
-                                        else MaterialTheme.colorScheme.surfaceVariant,
-                                        shape = RoundedCornerShape(8.dp)
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = app.icon,
-                                    contentDescription = null,
-                                    tint = if (isSelected) MaterialTheme.colorScheme.onPrimaryContainer
-                                    else MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            
-                            Spacer(modifier = Modifier.width(12.dp))
-                            
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = app.name,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onBackground
-                                )
-                            }
-                            
-                            if (isSelected) {
-                                Icon(
-                                    imageVector = Icons.Default.Settings,
-                                    contentDescription = "Sélectionné",
-                                    tint = MaterialTheme.colorScheme.primary,
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
-                        }
+                        Icon(
+                            imageVector = Icons.Default.Info,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Informations")
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(12.dp))
                 
-                // Option pour supprimer l'application de cet emplacement
+                // Bouton Modifier
                 OutlinedButton(
                     modifier = Modifier.fillMaxWidth(),
-                    onClick = { onAppSelect(null) }
+                    onClick = {
+                        onModifyClick()
+                        onDismiss()
+                    }
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
+                        modifier = Modifier.padding(vertical = 8.dp)
                     ) {
                         Icon(
-                            imageVector = Icons.Default.Clear,
+                            imageVector = Icons.Default.Settings,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.primary
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Supprimer cet emplacement")
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text("Modifier l'application")
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Fermer")
+            }
+        }
+    )
+}
+
+/**
+ * Filtre les apps par catégorie selon la position
+ */
+private fun getFilteredApps(allApps: List<AppInfo>, position: Int): List<AppInfo> {
+    return when (position) {
+        0 -> getCallApps(allApps)      // Position 0: Apps d'appel
+        1 -> getSocialApps(allApps)    // Position 1: Réseaux sociaux
+        2 -> getStoreApps(allApps)     // Position 2: Stores d'apps
+        3 -> getVideoApps(allApps)     // Position 3: Apps vidéo
+        else -> allApps                 // Par défaut: toutes les apps
+    }
+}
+
+/**
+ * Filtre pour les apps d'appel (téléphone, dialer, contacts)
+ */
+private fun getCallApps(allApps: List<AppInfo>): List<AppInfo> {
+    val callKeywords = listOf("phone", "téléphone", "dialer", "contacts", "appel", "call", "whatsapp")
+    return allApps.filter { appInfo ->
+        val nameLower = appInfo.appName.lowercase()
+        val packageLower = appInfo.packageName.lowercase()
+        callKeywords.any { keyword ->
+            nameLower.contains(keyword) || packageLower.contains(keyword)
+        }
+    }
+}
+
+/**
+ * Filtre pour les apps de réseaux sociaux
+ */
+private fun getSocialApps(allApps: List<AppInfo>): List<AppInfo> {
+    val socialKeywords = listOf(
+        "discord", "whatsapp", "messenger", "facebook", "instagram", "tiktok",
+        "telegram", "signal", "snapchat", "twitter", "x", "linkedin", "reddit"
+    )
+    return allApps.filter { appInfo ->
+        val nameLower = appInfo.appName.lowercase()
+        val packageLower = appInfo.packageName.lowercase()
+        socialKeywords.any { keyword ->
+            nameLower.contains(keyword) || packageLower.contains(keyword)
+        }
+    }
+}
+
+/**
+ * Filtre pour les stores d'applications
+ */
+private fun getStoreApps(allApps: List<AppInfo>): List<AppInfo> {
+    val storeKeywords = listOf(
+        "play store", "store", "vending", "f-droid", "aurora", "galaxy store",
+        "app store", "market", "aptoide"
+    )
+    return allApps.filter { appInfo ->
+        val nameLower = appInfo.appName.lowercase()
+        val packageLower = appInfo.packageName.lowercase()
+        storeKeywords.any { keyword ->
+            nameLower.contains(keyword) || packageLower.contains(keyword)
+        }
+    }
+}
+
+/**
+ * Filtre pour les apps vidéo (YouTube, etc.)
+ */
+private fun getVideoApps(allApps: List<AppInfo>): List<AppInfo> {
+    val videoKeywords = listOf("youtube", "yt ", "ytube", "video", "vimeo", "dailymotion", "twitch", "prime video")
+    val excludedKeywords = listOf("instagram", "tiktok", "insta", "tik tok", "reels", "shorts", "facebook", "meta")
+    
+    return allApps.filter { appInfo ->
+        val nameLower = appInfo.appName.lowercase()
+        val packageLower = appInfo.packageName.lowercase()
+        
+        val isVideoApp = videoKeywords.any { keyword ->
+            nameLower.contains(keyword) || packageLower.contains(keyword)
+        }
+        
+        val isExcluded = excludedKeywords.any { keyword ->
+            nameLower.contains(keyword) || packageLower.contains(keyword)
+        }
+        
+        isVideoApp && !isExcluded
+    }
+}
+
+/**
+ * Dialog pour choisir une app pour remplacer l'app actuelle.
+ * La liste est filtrée selon la position (0: Appels, 1: Réseaux sociaux, 2: Stores, 3: Vidéos)
+ */
+@Composable
+fun AppModifyDialog(
+    currentApp: FavoriteApp,
+    allApps: List<AppInfo>,
+    position: Int,
+    onDismiss: () -> Unit,
+    onAppSelect: (FavoriteApp) -> Unit
+) {
+    val categoryName = when (position) {
+        0 -> "Appels"
+        1 -> "Réseaux sociaux"
+        2 -> "Stores"
+        3 -> "Vidéos"
+        else -> "Applications"
+    }
+    
+    val filteredApps = remember(allApps, position) { getFilteredApps(allApps, position) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Choisir une application $categoryName") },
+        text = {
+            if (filteredApps.isEmpty()) {
+                Text("Aucune application $categoryName trouvée.")
+            } else {
+                Column {
+                    Text("Sélectionnez une app pour remplacer ${currentApp.name} :")
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    // Liste des apps filtrées avec scroll
+                    LazyColumn(
+                        modifier = Modifier.heightIn(max = 400.dp)
+                    ) {
+                        items(filteredApps, key = { it.packageName }) { appInfo ->
+                            val isSelected = appInfo.packageName == currentApp.packageName
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 4.dp)
+                                    .clickable {
+                                        // Utiliser une icône par défaut selon la catégorie
+                                        val defaultIcon = when (position) {
+                                            0 -> Icons.Default.Call
+                                            1 -> Icons.Default.Groups
+                                            2 -> Icons.Default.PlayArrow
+                                            3 -> Icons.Default.Videocam
+                                            else -> Icons.Default.Apps
+                                        }
+                                        onAppSelect(FavoriteApp(appInfo.appName, defaultIcon, appInfo.packageName))
+                                        onDismiss()
+                                    }
+                                    .background(
+                                        if (isSelected) MaterialTheme.colorScheme.primaryContainer
+                                        else MaterialTheme.colorScheme.surfaceVariant,
+                                        RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(8.dp)
+                            ) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    AppIcon(
+                                        drawable = appInfo.icon,
+                                        appName = appInfo.appName,
+                                        packageName = appInfo.packageName
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Text(
+                                        text = appInfo.appName,
+                                        style = MaterialTheme.typography.bodyMedium
+                                    )
+                                    if (isSelected) {
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Icon(
+                                            imageVector = Icons.Default.Settings,
+                                            contentDescription = "Sélectionné",
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(16.dp)
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -398,11 +551,6 @@ fun AppCustomizationMenu(
         confirmButton = {
             TextButton(onClick = onDismiss) {
                 Text("Annuler")
-            }
-        },
-        dismissButton = {
-            TextButton(onClick = onDismiss) {
-                Text("Fermer")
             }
         }
     )
