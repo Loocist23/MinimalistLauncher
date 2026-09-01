@@ -68,8 +68,6 @@ import kotlinx.coroutines.launch
 fun AppDrawer(
     onClose: () -> Unit,
     onOpen: () -> Unit = {},
-    onScrollStarted: () -> Unit = {},
-    onScrollStopped: () -> Unit = {},
     isAnimating: Boolean = false,
     swipeThreshold: Float = 50f
 ) {
@@ -82,20 +80,13 @@ fun AppDrawer(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
     
-    // Tracker pour détecter si on est en train de scroller
-    // Utiliser derivedStateOf pour éviter les recompositions inutiles
-    val isScrolling = remember { mutableStateOf(false) }
+    // Tracker pour éviter de déclencher onClose plusieurs fois pendant un même drag
+    var dragTriggered by remember { mutableStateOf(false) }
     
-    // Mettre à jour les callbacks parent avec un délai pour éviter les appels trop fréquents
-    LaunchedEffect(isScrolling.value) {
-        if (isScrolling.value) {
-            onScrollStarted()
-        } else {
-            // Petit délai pour s'assurer que le scroll est vraiment terminé
-            kotlinx.coroutines.delay(100)
-            if (!isScrolling.value) {
-                onScrollStopped()
-            }
+    // Vérifier si on est tout en haut de la liste
+    val isAtTop by remember {
+        derivedStateOf {
+            listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
         }
     }
     
@@ -123,58 +114,36 @@ fun AppDrawer(
         }
     }
     
-    // Les apps sont déjà chargées dans AppContent au démarrage du launcher
-    // Connection pour détecter le scroll
-    val nestedScrollConnection = remember {
-        object : NestedScrollConnection {
-            override fun onPreScroll(available: androidx.compose.ui.geometry.Offset, source: NestedScrollSource): androidx.compose.ui.geometry.Offset {
-                if (available.y != 0f) {
-                    isScrolling.value = true
-                }
-                return androidx.compose.ui.geometry.Offset.Zero
-            }
-            
-            override fun onPostScroll(consumed: androidx.compose.ui.geometry.Offset, available: androidx.compose.ui.geometry.Offset, source: NestedScrollSource): androidx.compose.ui.geometry.Offset {
-                // Si on a consommé du scroll vertical, on est en train de scroller
-                if (consumed.y != 0f) {
-                    isScrolling.value = true
-                } else if (available.y == 0f) {
-                    // Si plus de scroll disponible, on a arrêté
-                    isScrolling.value = false
-                }
-                return androidx.compose.ui.geometry.Offset.Zero
-            }
-        }
-    }
-    
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f))
-            .nestedScroll(nestedScrollConnection)
-            .pointerInput(isAnimating) {
-                if (isAnimating) {
-                    // Bloquer tous les clics pendant l'animation
-                    detectTapGestures {}
-                } else {
-                    // Détecter le swipe vers le haut pour ouvrir le tiroir
+            .pointerInput(isAnimating, isAtTop) {
+                if (!isAnimating) {
                     detectVerticalDragGestures(
-                        onDragStart = { },
+                        onDragStart = {
+                            dragTriggered = false
+                        },
                         onVerticalDrag = { change, dragAmount ->
-                            change.consume()
+                            // Si swipe vers le bas (dragAmount > 0) avec un seuil suffisant
+                            // ET qu'on est tout en haut de la liste
+                            // et qu'on n'a pas encore déclenché l'action
+                            if (dragAmount > 20f && isAtTop && !dragTriggered) {
+                                dragTriggered = true
+                                onClose()
+                                change.consume()
+                            }
                         },
-                        onDragEnd = {
-                            // Appeler onOpen quand on arrête de swiper
-                            onOpen()
-                        },
-                        onDragCancel = {
-                            // Appeler onOpen en cas d'annulation
-                            onOpen()
-                        }
+                        onDragEnd = {},
+                        onDragCancel = {}
                     )
                 }
             }
     ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
         // En-tête avec barre de recherche et bouton fermer
         Row(
             modifier = Modifier
@@ -319,6 +288,7 @@ fun AppDrawer(
             )
         }
     }
+}
 }
 
 /**

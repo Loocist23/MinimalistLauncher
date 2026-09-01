@@ -297,6 +297,11 @@ fun AppContent() {
                                 return@detectVerticalDragGestures
                             }
                             
+                            // Si le tiroir est complètement ouvert (offset = 0), laisser AppDrawer gérer les gestes
+                            if (drawerOffset.value == 0f) {
+                                return@detectVerticalDragGestures
+                            }
+                            
                             // dragAmount > 0 = vers le bas (ferme), dragAmount < 0 = vers le haut (ouvre)
                             // Offset initial = screenHeight (caché)
                             // Swipe vers le haut depuis le haut = offset diminue = tiroir monte = OUVRE
@@ -315,22 +320,22 @@ fun AppContent() {
                             change.consume()
                         },
                         onDragEnd = {
-                            // On vérifie la direction du swipe, pas la position finale
-                            // dragAmount < 0 = swipe vers le haut = ouvrir
-                            // dragAmount > 0 = swipe vers le bas = fermer
-                            // On utilise un état pour mémoriser la direction du swipe
-                            if (lastDragDirection.value == DragDirection.UP) {
+                            // On vérifie la direction du swipe et l'état du tiroir
+                            // Si le tiroir est fermé (offset proche de screenHeight) et swipe vers le haut -> ouvrir
+                            // Si le tiroir est ouvert (offset proche de 0) et swipe vers le bas -> fermer
+                            val isDrawerOpen = drawerOffset.value < screenHeight / 2
+                            
+                            if (lastDragDirection.value == DragDirection.UP && !isDrawerOpen) {
                                 openDrawer()
-                            } else if (lastDragDirection.value == DragDirection.DOWN) {
+                            } else if (lastDragDirection.value == DragDirection.DOWN && isDrawerOpen) {
                                 closeDrawer()
                             }
                             // Réinitialiser la direction
                             lastDragDirection.value = DragDirection.NONE
                         },
                         onDragCancel = {
-                            // Réinitialiser la direction et fermer le tiroir
+                            // Réinitialiser la direction
                             lastDragDirection.value = DragDirection.NONE
-                            closeDrawer()
                         }
                     )
                 }
@@ -348,8 +353,6 @@ fun AppContent() {
                 AppDrawer(
                     onClose = { closeDrawer() },
                     onOpen = { openDrawer() },
-                    onScrollStarted = { isInteracting.value = true },
-                    onScrollStopped = { isInteracting.value = false },
                     isAnimating = isInteracting.value
                 )
             }

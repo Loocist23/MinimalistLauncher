@@ -88,3 +88,8 @@ google-services.json
 
 # Kotlin
 .kotlin/
+
+# Signing files
+app/signing.properties
+app/*.jks
+app/*.keystore

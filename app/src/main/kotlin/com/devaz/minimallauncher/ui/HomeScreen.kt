@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material.icons.filled.Videocam
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.AlertDialog
@@ -45,6 +46,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
@@ -61,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.devaz.minimallauncher.model.AppInfo
 import com.devaz.minimallauncher.viewmodel.AppViewModel
+import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -73,14 +76,21 @@ fun HomeScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val viewModel: AppViewModel = viewModel()
     
-    // Formatage de l'heure
-    val currentTime = remember {
-        LocalTime.now().format(DateTimeFormatter.ofPattern("HH:mm"))
-    }
+    // Formatage de l'heure - mise à jour toutes les secondes
+    val timeFormat = remember { DateTimeFormatter.ofPattern("HH:mm") }
+    val dateFormat = remember { DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy") }
     
-    // Date
-    val currentDate = remember {
-        LocalDate.now().format(DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy"))
+    // Heure et date avec mise à jour fréquente
+    val currentTime = remember { mutableStateOf(LocalTime.now().format(timeFormat)) }
+    val currentDate = remember { mutableStateOf(LocalDate.now().format(dateFormat)) }
+    
+    // Mettre à jour toutes les secondes
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(1000) // 1 seconde
+            currentTime.value = LocalTime.now().format(timeFormat)
+            currentDate.value = LocalDate.now().format(dateFormat)
+        }
     }
     
     // State pour stocker les modifications des apps favorites
@@ -90,7 +100,8 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             FavoriteApp("Téléphone", Icons.Default.Call, "com.android.phone"),      // Position 0: Appels
             FavoriteApp("Discord", Icons.Default.Groups, "com.discord"),            // Position 1: Réseaux sociaux
             FavoriteApp("Play Store", Icons.Default.PlayArrow, "com.android.vending"), // Position 2: Stores
-            FavoriteApp("YouTube", Icons.Default.Videocam, "com.google.android.youtube") // Position 3: Vidéos
+            FavoriteApp("YouTube", Icons.Default.Videocam, "com.google.android.youtube"), // Position 3: Vidéos
+            FavoriteApp("Horloge", Icons.Default.Schedule, "com.google.android.deskclock")  // Position 4: Horloge
         )
     ) }
     
@@ -115,31 +126,28 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         horizontalAlignment = Alignment.CenterHorizontally
    ) {
         // En-tête avec heure et date
+        val clockApp = remember { favoriteAppsState.value.getOrNull(4) ?: FavoriteApp("Horloge", Icons.Default.Schedule, "com.google.android.deskclock") }
+        
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = 48.dp, bottom = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = currentTime,
-                style = MaterialTheme.typography.displayLarge.copy(
-                    fontSize = 72.sp,
-                    fontWeight = FontWeight.Light
-                ),
-                color = MaterialTheme.colorScheme.onBackground
-            )
-            Text(
-                text = currentDate,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            // Heure cliquable comme une app
+            TimeAppItem(
+                app = clockApp,
+                position = 4,
+                currentTime = currentTime.value,
+                currentDate = currentDate.value,
+                onAppChange = ::replaceAppAtPosition
             )
         }
         
         Spacer(modifier = Modifier.height(32.dp))
         
         // Grille des applications favorites
-        FavoriteAppsGrid(favoriteAppsState.value, onAppChange = ::replaceAppAtPosition)
+        FavoriteAppsGrid(favoriteAppsState.value.take(4), onAppChange = ::replaceAppAtPosition)
         
         Spacer(modifier = Modifier.weight(1f))
         
@@ -301,6 +309,106 @@ fun FavoriteAppItem(app: FavoriteApp, position: Int, onAppChange: (position: Int
 }
 
 /**
+ * Élément spécial pour l'heure, affiche l'heure en temps réel avec les mêmes gestes que les apps favorites.
+ */
+@Composable
+fun TimeAppItem(
+    app: FavoriteApp,
+    position: Int,
+    currentTime: String,
+    currentDate: String,
+    onAppChange: (position: Int, newApp: FavoriteApp?) -> Unit
+) {
+    val context = LocalContext.current
+    
+    val viewModel: AppViewModel = viewModel()
+    val allApps by viewModel.apps.observeAsState(emptyList())
+    
+    val showMenuState = remember { mutableStateOf(false) }
+    val showModifyDialogState = remember { mutableStateOf(false) }
+    val showAppInfoDialogState = remember { mutableStateOf(false) }
+    
+    // Gestes pour l'interaction avec l'heure
+    Box(
+        modifier = Modifier
+            .wrapContentSize()
+            .pointerInput(app) {
+                detectTapGestures(
+                    onTap = {
+                        // Tap pour lancer l'app d'horloge
+                        com.devaz.minimallauncher.ui.launchAppByPackage(context, app.packageName)
+                    },
+                    onLongPress = {
+                        // Long press pour ouvrir le menu
+                        showMenuState.value = true
+                    }
+                )
+            }
+            .padding(8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        // Contenu spécial pour l'heure
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            // Heure en grand
+            Text(
+                text = currentTime,
+                style = MaterialTheme.typography.displayLarge.copy(
+                    fontSize = 72.sp,
+                    fontWeight = FontWeight.Light
+                ),
+                color = MaterialTheme.colorScheme.onBackground
+            )
+            // Date
+            Text(
+                text = currentDate,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
+            )
+        }
+        
+        // Menu simplifié (apparaît sur long press)
+        if (showMenuState.value) {
+            AppCustomizationSimpleMenu(
+                currentApp = app,
+                onDismiss = { showMenuState.value = false },
+                onInfoClick = { 
+                    showMenuState.value = false
+                    showAppInfoDialogState.value = true
+                },
+                onModifyClick = {
+                    showMenuState.value = false
+                    showModifyDialogState.value = true
+                }
+            )
+        }
+        
+        // Dialog pour modifier l'app (liste des apps d'horloge)
+        if (showModifyDialogState.value) {
+            AppModifyDialog(
+                currentApp = app,
+                allApps = allApps,
+                position = position,
+                onDismiss = { showModifyDialogState.value = false },
+                onAppSelect = { newApp ->
+                    onAppChange(position, newApp)
+                    showModifyDialogState.value = false
+                }
+            )
+        }
+        
+        // Dialog pour afficher les infos de l'app
+        if (showAppInfoDialogState.value) {
+            AppInfoDialog(
+                app = app,
+                onDismiss = { showAppInfoDialogState.value = false }
+            )
+        }
+    }
+}
+
+/**
  * Menu simplifié avec options : Infos + Modifier.
  */
 @Composable
@@ -382,6 +490,7 @@ private fun getFilteredApps(allApps: List<AppInfo>, position: Int): List<AppInfo
         1 -> getSocialApps(allApps)    // Position 1: Réseaux sociaux
         2 -> getStoreApps(allApps)     // Position 2: Stores d'apps
         3 -> getVideoApps(allApps)     // Position 3: Apps vidéo
+        4 -> getClockApps(allApps)     // Position 4: Apps d'horloge
         else -> allApps                 // Par défaut: toutes les apps
     }
 }
@@ -458,8 +567,25 @@ private fun getVideoApps(allApps: List<AppInfo>): List<AppInfo> {
 }
 
 /**
+ * Filtre pour les apps d'horloge
+ */
+private fun getClockApps(allApps: List<AppInfo>): List<AppInfo> {
+    val clockKeywords = listOf(
+        "horloge", "clock", "heure", "time", "alarm", "réveil", "chronomètre", "minuteur",
+        "deskclock", "google clock", "horloger", "watch", "timezone"
+    )
+    return allApps.filter { appInfo ->
+        val nameLower = appInfo.appName.lowercase()
+        val packageLower = appInfo.packageName.lowercase()
+        clockKeywords.any { keyword ->
+            nameLower.contains(keyword) || packageLower.contains(keyword)
+        }
+    }
+}
+
+/**
  * Dialog pour choisir une app pour remplacer l'app actuelle.
- * La liste est filtrée selon la position (0: Appels, 1: Réseaux sociaux, 2: Stores, 3: Vidéos)
+ * La liste est filtrée selon la position (0: Appels, 1: Réseaux sociaux, 2: Stores, 3: Vidéos, 4: Horloge)
  */
 @Composable
 fun AppModifyDialog(
@@ -474,6 +600,7 @@ fun AppModifyDialog(
         1 -> "Réseaux sociaux"
         2 -> "Stores"
         3 -> "Vidéos"
+        4 -> "Horloges"
         else -> "Applications"
     }
     
@@ -507,6 +634,7 @@ fun AppModifyDialog(
                                             1 -> Icons.Default.Groups
                                             2 -> Icons.Default.PlayArrow
                                             3 -> Icons.Default.Videocam
+                                            4 -> Icons.Default.Schedule
                                             else -> Icons.Default.Apps
                                         }
                                         onAppSelect(FavoriteApp(appInfo.appName, defaultIcon, appInfo.packageName))

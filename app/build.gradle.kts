@@ -3,22 +3,39 @@ plugins {
     alias(libs.plugins.compose) apply true
 }
 
+import java.util.Properties
+
 android {
     namespace = "com.devaz.minimallauncher"
     compileSdk = 34
 
+    // Charger la configuration de signing depuis signing.properties
+    val signingProps = Properties().apply {
+        file("signing.properties").takeIf { it.exists() }?.inputStream()?.use { load(it) }
+    }
+
     defaultConfig {
         applicationId = "com.devaz.minimallauncher"
         minSdk = 29  // Android 10+
-        targetSdk = 34
-        versionCode = 1
-        versionName = "1.0.0"
+        targetSdk = 36
+        versionCode = 4
+        versionName = "1.2.5"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(signingProps.getProperty("storeFile"))
+            storePassword = signingProps.getProperty("storePassword")
+            keyAlias = signingProps.getProperty("keyAlias")
+            keyPassword = signingProps.getProperty("keyPassword")
+        }
+    }
+
     buildTypes {
         release {
+            signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
         }
