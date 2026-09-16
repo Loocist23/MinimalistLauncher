@@ -17,6 +17,10 @@
 
 La navigation gestuelle peut être désactivée par certains constructeurs (Xiaomi/HyperOS, Samsung) lorsqu'un launcher tiers est défini par défaut. Il s'agit d'une restriction de l'OS, pas d'un bug de l'application.
 
+### À faire (prochaine version)
+
+- Ajouter un onboarding au premier lancement pour expliquer le fonctionnement de l'app (gestes, permissions, personnalisation)
+
 ---
 
 ## [1.3.0] — 2026-09-16
