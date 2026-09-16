@@ -2,7 +2,9 @@ package com.devaz.minimallauncher.repository
 
 import android.content.Context
 import android.content.pm.PackageManager
+import android.provider.ContactsContract
 import com.devaz.minimallauncher.model.AppInfo
+import com.devaz.minimallauncher.model.ContactInfo
 
 /**
  * Repository pour gérer la récupération des applications installées.
@@ -52,7 +54,7 @@ class AppRepository(private val context: Context) {
     private fun isSystemPackage(packageName: String): Boolean {
         return try {
             val packageInfo = packageManager.getPackageInfo(packageName, 0)
-            (packageInfo.applicationInfo.flags and android.content.pm.ApplicationInfo.FLAG_SYSTEM) != 0
+            (packageInfo.applicationInfo?.flags ?: 0) and android.content.pm.ApplicationInfo.FLAG_SYSTEM != 0
         } catch (e: Exception) {
             false
         }
@@ -76,6 +78,41 @@ class AppRepository(private val context: Context) {
             packageManager.getLaunchIntentForPackage(packageName)
         } catch (e: Exception) {
             null
+        }
+    }
+
+    /**
+     * Récupère la liste des contacts téléphoniques.
+     * Requiert la permission READ_CONTACTS.
+     */
+    fun getContacts(): List<ContactInfo> {
+        return try {
+            val cursor = context.contentResolver.query(
+                ContactsContract.CommonDataKinds.Phone.CONTENT_URI,
+                arrayOf(
+                    ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME,
+                    ContactsContract.CommonDataKinds.Phone.NUMBER
+                ),
+                null,
+                null,
+                "${ContactsContract.CommonDataKinds.Phone.DISPLAY_NAME} ASC"
+            )
+
+            val contacts = mutableListOf<ContactInfo>()
+            cursor?.use {
+                while (it.moveToNext()) {
+                    val name = it.getString(0) ?: ""
+                    val number = it.getString(1) ?: ""
+                    if (name.isNotEmpty() && number.isNotEmpty()) {
+                        contacts.add(ContactInfo(name, number))
+                    }
+                }
+            }
+            contacts.distinctBy { it.name.lowercase() }
+        } catch (e: SecurityException) {
+            emptyList()
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 }

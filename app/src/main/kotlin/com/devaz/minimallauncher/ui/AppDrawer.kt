@@ -1,15 +1,14 @@
 package com.devaz.minimallauncher.ui
 
-import android.graphics.drawable.Drawable
+import android.content.Intent
+import android.net.Uri
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
-import androidx.compose.foundation.gestures.draggable
-import androidx.compose.foundation.gestures.rememberDraggableState
-import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -18,7 +17,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -26,9 +24,11 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -46,51 +46,55 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
-import androidx.compose.ui.input.nestedscroll.NestedScrollSource
-import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.devaz.minimallauncher.model.AppInfo
+import com.devaz.minimallauncher.model.ContactInfo
 import com.devaz.minimallauncher.viewmodel.AppViewModel
+import com.devaz.minimallauncher.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
 /**
- * Tiroir d'applications avec index alphabétique.
+ * Tiroir d'applications avec recherche, contacts et index alphabétique.
  */
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun AppDrawer(
     onClose: () -> Unit,
     onOpen: () -> Unit = {},
+    onOpenSettings: () -> Unit = {},
     isAnimating: Boolean = false,
     swipeThreshold: Float = 50f
 ) {
     val context = LocalContext.current
     val viewModel: AppViewModel = viewModel()
+    val settingsViewModel: SettingsViewModel = viewModel()
     val apps by viewModel.apps.observeAsState(emptyList())
+    val contacts by viewModel.contacts.observeAsState(emptyList())
+    val contactsSearchEnabled by settingsViewModel.contactsSearchEnabled.observeAsState(true)
     val isLoading by viewModel.isLoading.observeAsState(true)
-    
+
     var searchQuery by remember { mutableStateOf("") }
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
-    
-    // Tracker pour éviter de déclencher onClose plusieurs fois pendant un même drag
+
     var dragTriggered by remember { mutableStateOf(false) }
-    
-    // Vérifier si on est tout en haut de la liste
+
     val isAtTop by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
         }
     }
-    
-    // Filtrer et trier les apps - utiliser derivedStateOf pour optimiser
+
+    val isSearching = searchQuery.isNotBlank()
+
+    // Filtrer les apps
     val filteredApps by remember(apps, searchQuery) {
         derivedStateOf {
             val filtered = if (searchQuery.isBlank()) {
@@ -104,16 +108,69 @@ fun AppDrawer(
             filtered.sortedBy { it.appName.uppercase() }
         }
     }
-    
-    // Pré-calculer le groupement par lettre pour éviter de le faire dans le content de LazyColumn
+
+    // Filtrer les contacts (uniquement pendant la recherche)
+    val filteredContacts by remember(contacts, searchQuery, contactsSearchEnabled) {
+        derivedStateOf {
+            if (!contactsSearchEnabled || searchQuery.isBlank()) {
+                emptyList()
+            } else {
+                contacts.filter {
+                    it.name.contains(searchQuery, ignoreCase = true) ||
+                    it.phoneNumber.contains(searchQuery, ignoreCase = true)
+                }
+            }
+        }
+    }
+
+    // Grouper les apps par lettre
     val groupedApps by remember(filteredApps) {
         derivedStateOf {
-            filteredApps.groupBy { 
-                it.appName.uppercase().firstOrNull()?.toString() ?: "#" 
+            filteredApps.groupBy {
+                it.appName.uppercase().firstOrNull()?.toString() ?: "#"
             }.toSortedMap(String.CASE_INSENSITIVE_ORDER)
         }
     }
-    
+
+    // Pré-calculer l'index de chaque lettre dans le LazyColumn
+    val letterToItemIndex = remember(groupedApps, isSearching, filteredContacts) {
+        var index = 0
+        val map = linkedMapOf<String, Int>()
+
+        // Entrée "Paramètres" en tête quand on ne recherche pas
+        if (!isSearching) {
+            index += 1
+        }
+
+        if (isSearching && filteredContacts.isNotEmpty()) {
+            index += 1 + filteredContacts.size
+        }
+        if (isSearching && filteredApps.isNotEmpty()) {
+            index += 1
+        }
+
+        groupedApps.forEach { (letter, appsInGroup) ->
+            map[letter] = index
+            index += 1 + appsInGroup.size
+        }
+        map
+    }
+
+    // Animation de visibilité de l'index alphabétique
+    val indexAlpha = remember { Animatable(0f) }
+
+    LaunchedEffect(listState.isScrollInProgress, isSearching) {
+        if (!isSearching) {
+            if (listState.isScrollInProgress) {
+                indexAlpha.animateTo(1f, animationSpec = tween(200))
+            } else {
+                indexAlpha.animateTo(0f, animationSpec = tween(400))
+            }
+        } else {
+            indexAlpha.animateTo(0f, animationSpec = tween(200))
+        }
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
@@ -125,9 +182,6 @@ fun AppDrawer(
                             dragTriggered = false
                         },
                         onVerticalDrag = { change, dragAmount ->
-                            // Si swipe vers le bas (dragAmount > 0) avec un seuil suffisant
-                            // ET qu'on est tout en haut de la liste
-                            // et qu'on n'a pas encore déclenché l'action
                             if (dragAmount > 20f && isAtTop && !dragTriggered) {
                                 dragTriggered = true
                                 onClose()
@@ -141,61 +195,32 @@ fun AppDrawer(
             }
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxSize()
+            modifier = Modifier.fillMaxSize()
         ) {
-        // En-tête avec barre de recherche et bouton fermer
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
+            // Barre de recherche pleine largeur avec placeholder
             SearchBar(
                 query = searchQuery,
-                onQueryChange = { 
+                onQueryChange = {
                     if (!isAnimating) {
                         searchQuery = it
-                        viewModel.searchApps(it)
                     }
                 },
-                onSearch = { 
-                    if (!isAnimating) {
-                        viewModel.searchApps(searchQuery)
-                    }
-                },
+                onSearch = {},
                 active = false,
                 onActiveChange = {},
                 enabled = !isAnimating,
+                placeholder = { Text("Rechercher...") },
+                leadingIcon = {
+                    Icon(Icons.Default.Search, contentDescription = "Rechercher")
+                },
                 modifier = Modifier
-                    .fillMaxWidth(0.9f)
-            ) {
-                // Contenu de la SearchBar
-            }
-            
-            Icon(
-                imageVector = Icons.Default.Close,
-                contentDescription = "Fermer",
-                tint = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier
-                    .padding(start = 8.dp)
-                    .clickable(
-                        enabled = !isAnimating,
-                        onClick = onClose
-                    )
-                    .size(36.dp)
-            )
-        }
-        
-        // Contenu principal avec liste et index
-        Row(
-            modifier = Modifier.fillMaxSize()
-        ) {
-            // Liste des applications
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {}
+
+            // Contenu principal
             Box(
-                modifier = Modifier
-                    .fillMaxHeight()
-                    .weight(1f)
+                modifier = Modifier.fillMaxSize()
             ) {
                 if (isLoading) {
                     Box(
@@ -204,13 +229,13 @@ fun AppDrawer(
                     ) {
                         CircularProgressIndicator()
                     }
-                } else if (filteredApps.isEmpty()) {
+                } else if (filteredApps.isEmpty() && filteredContacts.isEmpty()) {
                     Box(
                         modifier = Modifier.fillMaxSize(),
                         contentAlignment = Alignment.Center
                     ) {
                         Text(
-                            text = "Aucune application trouvée. Activez la permission QUERY_ALL_PACKAGES.",
+                            text = "Aucune application trouvée.",
                             color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                         )
                     }
@@ -219,10 +244,45 @@ fun AppDrawer(
                         state = listState,
                         modifier = Modifier.fillMaxSize()
                     ) {
-                        // Utiliser le groupement pré-calculé
+                        // Entrée Paramètres (uniquement quand on ne recherche pas)
+                        if (!isSearching) {
+                            item(key = "settings_entry") {
+                                SettingsDrawerEntry(onClick = onOpenSettings)
+                            }
+                        }
+                        // Section Contacts (uniquement pendant la recherche)
+                        if (filteredContacts.isNotEmpty()) {
+                            item(key = "contacts_header") {
+                                SectionHeader("Contacts")
+                            }
+                            items(filteredContacts, key = { "contact_${it.name}_${it.phoneNumber}" }) { contact ->
+                                ContactDrawerItem(
+                                    contact = contact,
+                                    onClick = {
+                                        val intent = Intent(Intent.ACTION_DIAL).apply {
+                                            data = Uri.parse("tel:${contact.phoneNumber}")
+                                            addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                                        }
+                                        try {
+                                            context.startActivity(intent)
+                                        } catch (e: Exception) {
+                                            e.printStackTrace()
+                                        }
+                                    }
+                                )
+                            }
+                        }
+
+                        // Header "Applications" pendant la recherche
+                        if (isSearching && filteredApps.isNotEmpty()) {
+                            item(key = "apps_header") {
+                                SectionHeader("Applications")
+                            }
+                        }
+
+                        // Liste des apps groupées par lettre
                         groupedApps.forEach { (letter, appsInGroup) ->
-                            item {
-                                // En-tête de la lettre
+                            item(key = "header_$letter") {
                                 Text(
                                     text = letter,
                                     style = MaterialTheme.typography.titleMedium,
@@ -233,121 +293,177 @@ fun AppDrawer(
                                         .background(MaterialTheme.colorScheme.surfaceContainer)
                                 )
                             }
-                            
+
                             items(appsInGroup, key = { it.packageName }) { appInfo ->
                                 AppDrawerItem(
                                     appInfo = appInfo,
-                                    onClick = { com.devaz.minimallauncher.ui.launchApp(context, appInfo) }
+                                    onClick = { launchApp(context, appInfo) }
                                 )
                             }
                         }
                     }
-                }
-                
-                // Scroll to top bouton
-                if (filteredApps.isNotEmpty()) {
-                    Box(
-                        modifier = Modifier
-                            .align(Alignment.BottomEnd)
-                            .padding(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = "Retour en haut",
-                            tint = MaterialTheme.colorScheme.primary,
+
+                    // Index alphabétique - overlay sur la droite, apparition animée
+                    if (!isSearching && groupedApps.isNotEmpty()) {
+                        Box(
                             modifier = Modifier
-                                .clickable {
+                                .align(Alignment.CenterEnd)
+                                .width(48.dp)
+                                .fillMaxHeight()
+                        ) {
+                            AlphabetIndex(
+                                groupedApps = groupedApps,
+                                letterToItemIndex = letterToItemIndex,
+                                listState = listState,
+                                alpha = indexAlpha.value,
+                                onShow = {
                                     coroutineScope.launch {
-                                        listState.scrollToItem(0)
+                                        indexAlpha.snapTo(1f)
+                                    }
+                                },
+                                onLetterSelected = { letter ->
+                                    val itemIndex = letterToItemIndex[letter] ?: return@AlphabetIndex
+                                    coroutineScope.launch {
+                                        listState.animateScrollToItem(itemIndex)
                                     }
                                 }
-                                .size(36.dp)
-                        )
-                    }
-                }
-            }
-            
-            // Index alphabétique à droite
-            AlphabetIndex(
-                groupedApps = groupedApps,
-                listState = listState,
-                onLetterSelected = { letter ->
-                    coroutineScope.launch {
-                        // Trouver la première app de cette lettre
-                        val appsInGroup = groupedApps[letter]
-                        if (!appsInGroup.isNullOrEmpty()) {
-                            // Trouver l'index global de la première app de ce groupe
-                            val firstApp = appsInGroup.first()
-                            val globalIndex = filteredApps.indexOf(firstApp)
-                            if (globalIndex >= 0) {
-                                listState.scrollToItem(globalIndex)
-                            }
+                            )
                         }
                     }
                 }
-            )
+            }
         }
     }
 }
+
+@Composable
+private fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .background(MaterialTheme.colorScheme.surfaceContainer)
+    )
 }
 
 /**
  * Index alphabétique vertical sur le côté droit.
+ * Pleine hauteur, apparition animée au scroll ou au toucher du bord droit.
+ * Taper ou glisser sur une lettre fait défiler la liste vers cette section.
  */
 @Composable
 fun AlphabetIndex(
     groupedApps: Map<String, List<AppInfo>>,
+    letterToItemIndex: Map<String, Int>,
     listState: LazyListState,
+    alpha: Float,
+    onShow: () -> Unit,
     onLetterSelected: (String) -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
-    val hoveredLetter = remember { mutableStateOf<String?>(null) }
-    
-    // Obtenir les lettres uniques triées depuis groupedApps
     val letters = remember(groupedApps) {
-        val lettersSet = groupedApps.keys.toMutableSet()
-        lettersSet.add("#")
-        lettersSet.sortedWith(String.CASE_INSENSITIVE_ORDER)
+        groupedApps.keys.toSortedSet(String.CASE_INSENSITIVE_ORDER).toList()
     }
-    
+
     Column(
         modifier = Modifier
-            .width(40.dp)
             .fillMaxHeight()
-            .background(MaterialTheme.colorScheme.surfaceContainerHighest),
-        verticalArrangement = Arrangement.Top
+            .fillMaxWidth()
+            .graphicsLayer { this.alpha = alpha }
+            .background(
+                MaterialTheme.colorScheme.surface.copy(alpha = 0.85f),
+                RoundedCornerShape(8.dp)
+            )
+            .padding(vertical = 4.dp)
+            .pointerInput(letters) {
+                val letterHeight = size.height / letters.size
+                detectTapGestures { offset ->
+                    onShow()
+                    val letterIndex = (offset.y / letterHeight).toInt()
+                        .coerceIn(0, letters.lastIndex)
+                    onLetterSelected(letters[letterIndex])
+                }
+            }
+            .pointerInput(letters) {
+                val letterHeight = size.height / letters.size
+                detectVerticalDragGestures(
+                    onDragStart = { offset ->
+                        onShow()
+                        val letterIndex = (offset.y / letterHeight).toInt()
+                            .coerceIn(0, letters.lastIndex)
+                        onLetterSelected(letters[letterIndex])
+                    },
+                    onVerticalDrag = { change, _ ->
+                        val letterIndex = (change.position.y / letterHeight).toInt()
+                            .coerceIn(0, letters.lastIndex)
+                        onLetterSelected(letters[letterIndex])
+                        change.consume()
+                    }
+                )
+            },
+        verticalArrangement = Arrangement.SpaceEvenly,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Spacer(modifier = Modifier.height(80.dp)) // Espace pour la barre de recherche
-        
         letters.forEach { letter ->
-            val isHovered = hoveredLetter.value == letter
-            
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(36.dp)
-                    .clickable(onClick = { onLetterSelected(letter) })
-                    .background(
-                        if (isHovered) 
-                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
-                        else 
-                            Color.Transparent
-                    ),
+                    .weight(1f),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
                     text = letter,
-                    style = MaterialTheme.typography.labelSmall.copy(
-                        fontSize = if (isHovered) androidx.compose.ui.unit.TextUnit(16f, androidx.compose.ui.unit.TextUnitType.Sp) 
-                                else androidx.compose.ui.unit.TextUnit(14f, androidx.compose.ui.unit.TextUnitType.Sp)
-                    ),
-                    color = if (isHovered) 
-                        MaterialTheme.colorScheme.primary
-                    else 
-                        MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
                     textAlign = TextAlign.Center
                 )
             }
+        }
+    }
+}
+
+/**
+ * Élément de contact dans le tiroir.
+ */
+@Composable
+fun ContactDrawerItem(contact: ContactInfo, onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(12.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Call,
+                contentDescription = contact.name,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = contact.name,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            Text(
+                text = contact.phoneNumber,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+            )
         }
     }
 }
@@ -357,9 +473,8 @@ fun AlphabetIndex(
  */
 @Composable
 fun AppDrawerItem(appInfo: AppInfo, onClick: () -> Unit) {
-    // Utiliser remember pour stabiliser la référence
     val stableAppInfo = remember(appInfo) { appInfo }
-    
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -367,7 +482,6 @@ fun AppDrawerItem(appInfo: AppInfo, onClick: () -> Unit) {
             .padding(12.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Icône
         Box(
             modifier = Modifier
                 .size(40.dp)
@@ -375,31 +489,56 @@ fun AppDrawerItem(appInfo: AppInfo, onClick: () -> Unit) {
             contentAlignment = Alignment.Center
         ) {
             AppIcon(
-                drawable = stableAppInfo.icon, 
-                appName = stableAppInfo.appName, 
+                drawable = stableAppInfo.icon,
+                appName = stableAppInfo.appName,
                 packageName = stableAppInfo.packageName
             )
         }
-        
+
         Spacer(modifier = Modifier.width(12.dp))
-        
-        // Nom et package
-        Column(
-            modifier = Modifier.weight(1f)
-        ) {
+
+        Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = stableAppInfo.appName,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
-            // Package name masqué mais toujours utilisé pour la recherche
-            // Text(
-            //     text = stableAppInfo.packageName,
-            //     style = MaterialTheme.typography.bodySmall,
-            //     color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f),
-            //     maxLines = 1,
-            //     overflow = TextOverflow.Ellipsis
-            // )
         }
+    }
+}
+
+/**
+ * Entrée "Paramètres du launcher" en tête du tiroir.
+ */
+@Composable
+fun SettingsDrawerEntry(onClick: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Box(
+            modifier = Modifier
+                .size(40.dp)
+                .background(MaterialTheme.colorScheme.primaryContainer, MaterialTheme.shapes.small),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Paramètres",
+                tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                modifier = Modifier.size(24.dp)
+            )
+        }
+
+        Spacer(modifier = Modifier.width(12.dp))
+
+        Text(
+            text = "Paramètres du launcher",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }

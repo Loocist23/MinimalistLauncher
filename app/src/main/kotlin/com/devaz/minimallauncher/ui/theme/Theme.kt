@@ -7,35 +7,51 @@ import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
-
-private val DarkColorScheme = darkColorScheme(
-    primary = Purple80,
-    secondary = PurpleGrey80,
-    tertiary = Pink80
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = Purple40,
-    secondary = PurpleGrey40,
-    tertiary = Pink40
-)
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.devaz.minimallauncher.ui.getAccentColor
+import com.devaz.minimallauncher.viewmodel.SettingsViewModel
 
 @Composable
 fun MinimalLauncherTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit
 ) {
-    val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val settingsViewModel: SettingsViewModel = viewModel()
+    val themeMode by settingsViewModel.themeMode.observeAsState("system")
+    val accentColorKey by settingsViewModel.accentColorKey.observeAsState("purple")
+
+    val darkTheme = when (themeMode) {
+        "light" -> false
+        "dark" -> true
+        else -> isSystemInDarkTheme()
+    }
+
+    val accent = getAccentColor(accentColorKey)
+    val accentDark = accent.copy(alpha = 0.8f)
+
+    val colorScheme = if (darkTheme) {
+        darkColorScheme(
+            primary = accentDark,
+            secondary = accentDark.copy(alpha = 0.7f),
+            tertiary = accentDark.copy(alpha = 0.6f)
+        )
+    } else {
+        lightColorScheme(
+            primary = accent,
+            secondary = accent.copy(alpha = 0.8f),
+            tertiary = accent.copy(alpha = 0.7f)
+        )
+    }
+
     val view = LocalView.current
-    
+
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
         }
     }
 

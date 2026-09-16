@@ -63,6 +63,7 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.devaz.minimallauncher.model.AppInfo
 import com.devaz.minimallauncher.viewmodel.AppViewModel
+import com.devaz.minimallauncher.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
 import java.time.LocalDate
 import java.time.LocalTime
@@ -75,6 +76,9 @@ import java.time.format.DateTimeFormatter
 fun HomeScreen(modifier: Modifier = Modifier) {
     val context = LocalContext.current
     val viewModel: AppViewModel = viewModel()
+    val settingsViewModel: SettingsViewModel = viewModel()
+    val clockFontSize by settingsViewModel.clockFontSize.observeAsState(72)
+    val favoriteAppsCount by settingsViewModel.favoriteAppsCount.observeAsState(4)
     
     // Formatage de l'heure - mise à jour toutes les secondes
     val timeFormat = remember { DateTimeFormatter.ofPattern("HH:mm") }
@@ -140,6 +144,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
                 position = 4,
                 currentTime = currentTime.value,
                 currentDate = currentDate.value,
+                clockFontSize = clockFontSize,
                 onAppChange = ::replaceAppAtPosition
             )
         }
@@ -147,7 +152,7 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         Spacer(modifier = Modifier.height(32.dp))
         
         // Grille des applications favorites
-        FavoriteAppsGrid(favoriteAppsState.value.take(4), onAppChange = ::replaceAppAtPosition)
+        FavoriteAppsGrid(favoriteAppsState.value.take(favoriteAppsCount), onAppChange = ::replaceAppAtPosition)
         
         Spacer(modifier = Modifier.weight(1f))
         
@@ -317,6 +322,7 @@ fun TimeAppItem(
     position: Int,
     currentTime: String,
     currentDate: String,
+    clockFontSize: Int = 72,
     onAppChange: (position: Int, newApp: FavoriteApp?) -> Unit
 ) {
     val context = LocalContext.current
@@ -355,7 +361,7 @@ fun TimeAppItem(
             Text(
                 text = currentTime,
                 style = MaterialTheme.typography.displayLarge.copy(
-                    fontSize = 72.sp,
+                    fontSize = clockFontSize.sp,
                     fontWeight = FontWeight.Light
                 ),
                 color = MaterialTheme.colorScheme.onBackground

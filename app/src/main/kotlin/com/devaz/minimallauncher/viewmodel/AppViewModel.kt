@@ -11,6 +11,7 @@ import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.devaz.minimallauncher.model.AppInfo
+import com.devaz.minimallauncher.model.ContactInfo
 import com.devaz.minimallauncher.repository.AppRepository
 import com.devaz.minimallauncher.ui.appIconCache
 import kotlinx.coroutines.Dispatchers
@@ -27,6 +28,9 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     private val _apps = MutableLiveData<List<AppInfo>>()
     val apps: LiveData<List<AppInfo>> = _apps
     
+    private val _contacts = MutableLiveData<List<ContactInfo>>()
+    val contacts: LiveData<List<ContactInfo>> = _contacts
+    
     private val _isLoading = MutableLiveData<Boolean>()
     val isLoading: LiveData<Boolean> = _isLoading
     
@@ -35,6 +39,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
     
     // Cache de toutes les applications
     private var allAppsCache: List<AppInfo> = emptyList()
+    private var allContactsCache: List<ContactInfo> = emptyList()
 
     /**
      * Charge la liste de toutes les applications.
@@ -58,10 +63,17 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 val appsList = withContext(Dispatchers.IO) {
                     appRepository.getAllApps()
                 }
+
+                // Charger les contacts en parallèle
+                val contactsList = withContext(Dispatchers.IO) {
+                    appRepository.getContacts()
+                }
                 
                 // Trier par fréquence d'utilisation (les plus utilisées en premier)
                 allAppsCache = sortAppsByUsage(appsList)
+                allContactsCache = contactsList
                 _apps.value = allAppsCache
+                _contacts.value = allContactsCache
                 _error.value = if (appsList.isEmpty()) {
                     "Aucune application trouvée ou permission refusée"
                 } else {
@@ -200,6 +212,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
      */
     fun refreshApps() {
         allAppsCache = emptyList()
+        allContactsCache = emptyList()
         loadApps()
     }
 }

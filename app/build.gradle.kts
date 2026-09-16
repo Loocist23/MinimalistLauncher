@@ -7,7 +7,7 @@ import java.util.Properties
 
 android {
     namespace = "com.devaz.minimallauncher"
-    compileSdk = 34
+    compileSdk = 35
 
     // Charger la configuration de signing depuis signing.properties
     val signingProps = Properties().apply {
@@ -18,8 +18,8 @@ android {
         applicationId = "com.devaz.minimallauncher"
         minSdk = 29  // Android 10+
         targetSdk = 36
-        versionCode = 4
-        versionName = "1.2.5"
+        versionCode = 5
+        versionName = "1.3.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }

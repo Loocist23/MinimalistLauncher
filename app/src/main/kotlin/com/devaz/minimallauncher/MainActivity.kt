@@ -3,6 +3,7 @@ package com.devaz.minimallauncher
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -55,12 +56,14 @@ import androidx.compose.ui.unit.dp
 import com.devaz.minimallauncher.ui.AppDrawer
 import com.devaz.minimallauncher.ui.HomeScreen
 import com.devaz.minimallauncher.ui.PermissionScreen
+import com.devaz.minimallauncher.ui.SettingsScreen
 import com.devaz.minimallauncher.ui.theme.MinimalLauncherTheme
 import com.devaz.minimallauncher.viewmodel.AppViewModel
 import kotlinx.coroutines.launch
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         
         setContent {
@@ -219,6 +222,8 @@ fun AppContent() {
     val viewModel: AppViewModel = viewModel()
     val isLoading by viewModel.isLoading.observeAsState(true)
     
+    var showSettings by remember { mutableStateOf(false) }
+    
     LaunchedEffect(Unit) {
         viewModel.loadApps()
     }
@@ -353,9 +358,20 @@ fun AppContent() {
                 AppDrawer(
                     onClose = { closeDrawer() },
                     onOpen = { openDrawer() },
+                    onOpenSettings = {
+                        closeDrawer()
+                        showSettings = true
+                    },
                     isAnimating = isInteracting.value
                 )
             }
         }
+    }
+
+    // Overlay des paramètres
+    if (showSettings) {
+        SettingsScreen(
+            onBack = { showSettings = false }
+        )
     }
 }
