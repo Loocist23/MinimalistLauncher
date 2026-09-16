@@ -109,7 +109,7 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
                 
                 // Vérifier si on a la permission PACKAGE_USAGE_STATS
                 val appOps = getApplication<Application>().getSystemService(Context.APP_OPS_SERVICE) as AppOpsManager
-                val mode = appOps.checkOpNoThrow(
+                val mode = appOps.unsafeCheckOpNoThrow(
                     AppOpsManager.OPSTR_GET_USAGE_STATS,
                     Process.myUid(),
                     getApplication<Application>().packageName
