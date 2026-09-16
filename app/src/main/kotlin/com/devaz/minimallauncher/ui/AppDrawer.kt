@@ -84,6 +84,13 @@ fun AppDrawer(
     val listState = rememberLazyListState()
     val coroutineScope = rememberCoroutineScope()
 
+    // Réinitialiser la recherche et le scroll quand on ferme le tiroir
+    fun handleClose() {
+        searchQuery = ""
+        coroutineScope.launch { listState.scrollToItem(0) }
+        onClose()
+    }
+
     var dragTriggered by remember { mutableStateOf(false) }
 
     val isAtTop by remember {
@@ -184,7 +191,7 @@ fun AppDrawer(
                         onVerticalDrag = { change, dragAmount ->
                             if (dragAmount > 20f && isAtTop && !dragTriggered) {
                                 dragTriggered = true
-                                onClose()
+                                handleClose()
                                 change.consume()
                             }
                         },

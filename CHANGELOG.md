@@ -18,6 +18,7 @@
 - Index alphabétique pleine hauteur avec apparition animée au scroll ou au toucher du bord droit
 - Scroll animé par lettre (tap ou drag sur l'index)
 - Toggle de recherche de contacts (activable/désactivable depuis les paramètres)
+- Réinitialisation de la recherche et du scroll à la fermeture du tiroir
 
 ### Permissions
 
