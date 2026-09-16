@@ -19,6 +19,10 @@
 - Scroll animé par lettre (tap ou drag sur l'index)
 - Toggle de recherche de contacts (activable/désactivable depuis les paramètres)
 
+### Permissions
+
+- Demande runtime de la permission `READ_CONTACTS` au lancement de l'app (après validation de `QUERY_ALL_PACKAGES`)
+
 ### Paramètres du launcher
 
 - Nouvel écran de paramètres accessible depuis une entrée "Paramètres du launcher" en tête du tiroir

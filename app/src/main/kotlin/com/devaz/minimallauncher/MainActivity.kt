@@ -1,9 +1,14 @@
 package com.devaz.minimallauncher
 
 import android.os.Bundle
+import android.Manifest
+import android.content.pm.PackageManager
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.core.content.ContextCompat
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode
@@ -223,6 +228,25 @@ fun AppContent() {
     val isLoading by viewModel.isLoading.observeAsState(true)
     
     var showSettings by remember { mutableStateOf(false) }
+    
+    // Demande de la permission READ_CONTACTS au runtime
+    var hasContactPermission by remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(activity, Manifest.permission.READ_CONTACTS)
+                == PackageManager.PERMISSION_GRANTED
+        )
+    }
+    val contactPermissionLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        hasContactPermission = granted
+    }
+    // Demander la permission une fois, après que QUERY_ALL_PACKAGES est accordé
+    LaunchedEffect(hasPermission) {
+        if (hasPermission && !hasContactPermission) {
+            contactPermissionLauncher.launch(Manifest.permission.READ_CONTACTS)
+        }
+    }
     
     LaunchedEffect(Unit) {
         viewModel.loadApps()
