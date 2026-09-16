@@ -19,6 +19,7 @@
 - Scroll animé par lettre (tap ou drag sur l'index)
 - Toggle de recherche de contacts (activable/désactivable depuis les paramètres)
 - Réinitialisation de la recherche et du scroll à la fermeture du tiroir
+- Fermeture du tiroir par scroll vers le bas depuis la liste (pull-to-close via nestedScroll), fonctionne même en glissant sur des apps, sauf sur l'index alphabétique
 
 ### Permissions
 

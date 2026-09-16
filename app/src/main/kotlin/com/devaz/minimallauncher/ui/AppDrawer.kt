@@ -43,16 +43,22 @@ import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Velocity
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.devaz.minimallauncher.model.AppInfo
 import com.devaz.minimallauncher.model.ContactInfo
@@ -92,10 +98,47 @@ fun AppDrawer(
     }
 
     var dragTriggered by remember { mutableStateOf(false) }
+    var accumulatedDrag by remember { mutableStateOf(0f) }
 
     val isAtTop by remember {
         derivedStateOf {
             listState.firstVisibleItemIndex == 0 && listState.firstVisibleItemScrollOffset == 0
+        }
+    }
+
+    // Connection nested scroll pour détecter le pull-to-close
+    val currentIsAnimating = rememberUpdatedState(isAnimating)
+    val currentHandleClose = rememberUpdatedState<() -> Unit> { handleClose() }
+
+    val nestedScrollConnection = remember {
+        object : NestedScrollConnection {
+            override fun onPreScroll(
+                available: Offset,
+                source: NestedScrollSource
+            ): Offset {
+                if (available.y > 0f && isAtTop && !currentIsAnimating.value && !dragTriggered) {
+                    accumulatedDrag += available.y
+                    if (accumulatedDrag > 80f) {
+                        dragTriggered = true
+                        currentHandleClose.value()
+                    }
+                    return available
+                }
+                if (available.y < 0f) {
+                    accumulatedDrag = 0f
+                    dragTriggered = false
+                }
+                return Offset.Zero
+            }
+
+            override suspend fun onPostFling(
+                consumed: Velocity,
+                available: Velocity
+            ): Velocity {
+                accumulatedDrag = 0f
+                dragTriggered = false
+                return Velocity.Zero
+            }
         }
     }
 
@@ -227,7 +270,9 @@ fun AppDrawer(
 
             // Contenu principal
             Box(
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .nestedScroll(nestedScrollConnection)
             ) {
                 if (isLoading) {
                     Box(
