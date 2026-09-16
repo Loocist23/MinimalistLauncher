@@ -1,5 +1,24 @@
 # Changelog — MinimalLauncher
 
+## [1.4.0] — 2026-09-16
+
+### Améliorations
+
+- Grille dynamique pour les apps favorites : 4 apps en 1 ligne, 6 apps en 2 lignes de 3, 8 apps en 2 lignes de 4
+- Alignement parfait des colonnes de la grille (poids égal par cellule)
+- Demande runtime de la permission READ_CONTACTS au lancement
+- Réinitialisation de la recherche et du scroll à la fermeture du tiroir
+- Fermeture du tiroir par pull-to-close (scroll vers le bas depuis la liste)
+- Padding de la barre de statut sur l'écran de paramètres (edge-to-edge)
+- Suppression des warnings de dépréciation (ArrowBack AutoMirrored, unsafeCheckOpNoThrow)
+- Mise à jour de la politique de confidentialité (READ_CONTACTS, SharedPreferences)
+
+### Note de compatibilité
+
+La navigation gestuelle peut être désactivée par certains constructeurs (Xiaomi/HyperOS, Samsung) lorsqu'un launcher tiers est défini par défaut. Il s'agit d'une restriction de l'OS, pas d'un bug de l'application.
+
+---
+
 ## [1.3.0] — 2026-09-16
 
 ### Corrections Google Play (edge-to-edge + grand écran)
