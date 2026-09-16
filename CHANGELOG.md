@@ -30,6 +30,7 @@
 - Nouvel écran de paramètres accessible depuis une entrée "Paramètres du launcher" en tête du tiroir
 - **Apparence** : thème (système/clair/sombre), couleur d'accent (7 couleurs), taille de l'horloge (slider 40-120 sp)
 - **Applications favorites** : nombre d'apps (4/6/8), réinitialisation des apps favorites
+- Grille dynamique : 4 apps en 1 ligne, 6 apps en 2 lignes de 3, 8 apps en 2 lignes de 4
 - **Contacts** : activation/désactivation de la recherche de contacts
 - Persistance via SharedPreferences (`SettingsRepository`)
 - Application en temps réel du thème et de la couleur d'accent via `MinimalLauncherTheme`

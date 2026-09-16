@@ -105,7 +105,11 @@ fun HomeScreen(modifier: Modifier = Modifier) {
             FavoriteApp("Discord", Icons.Default.Groups, "com.discord"),            // Position 1: Réseaux sociaux
             FavoriteApp("Play Store", Icons.Default.PlayArrow, "com.android.vending"), // Position 2: Stores
             FavoriteApp("YouTube", Icons.Default.Videocam, "com.google.android.youtube"), // Position 3: Vidéos
-            FavoriteApp("Horloge", Icons.Default.Schedule, "com.google.android.deskclock")  // Position 4: Horloge
+            FavoriteApp("Horloge", Icons.Default.Schedule, "com.google.android.deskclock"), // Position 4: Horloge
+            FavoriteApp("Appareil photo", Icons.Default.Camera, "com.android.camera"),     // Position 5: Caméra
+            FavoriteApp("Réglages", Icons.Default.Settings, "com.android.settings"),       // Position 6: Paramètres système
+            FavoriteApp("Contacts", Icons.Default.Call, "com.android.contacts"),           // Position 7: Contacts
+            FavoriteApp("Navigateur", Icons.Default.PlayArrow, "com.android.chrome")       // Position 8: Navigateur
         )
     ) }
     
@@ -174,25 +178,38 @@ fun HomeScreen(modifier: Modifier = Modifier) {
 
 /**
  * Grille des applications favorites.
+ * 4 apps → 1 ligne de 4
+ * 6 apps → 2 lignes de 3
+ * 8 apps → 2 lignes de 4
  */
 @Composable
 fun FavoriteAppsGrid(currentApps: List<FavoriteApp>, onAppChange: (position: Int, newApp: FavoriteApp?) -> Unit) {
+    val columns = when (currentApps.size) {
+        6 -> 3
+        8 -> 4
+        else -> currentApps.size.coerceAtLeast(1)
+    }
+
     Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 16.dp),
-            horizontalArrangement = Arrangement.SpaceEvenly
-        ) {
-            currentApps.forEachIndexed { index, app ->
-                FavoriteAppItem(
-                    app = app,
-                    position = index,
-                    onAppChange = onAppChange
-                )
+        currentApps.chunked(columns).forEach { rowApps ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                rowApps.forEachIndexed { indexInRow, app ->
+                    val globalIndex = currentApps.indexOf(app)
+                    FavoriteAppItem(
+                        app = app,
+                        position = globalIndex,
+                        onAppChange = onAppChange
+                    )
+                }
             }
         }
     }
