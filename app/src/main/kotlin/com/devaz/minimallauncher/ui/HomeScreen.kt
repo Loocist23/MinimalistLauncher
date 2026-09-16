@@ -197,18 +197,29 @@ fun FavoriteAppsGrid(currentApps: List<FavoriteApp>, onAppChange: (position: Int
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        currentApps.chunked(columns).forEach { rowApps ->
+        currentApps.chunked(columns).forEachIndexed { rowIndex, rowApps ->
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 rowApps.forEachIndexed { indexInRow, app ->
-                    val globalIndex = currentApps.indexOf(app)
-                    FavoriteAppItem(
-                        app = app,
-                        position = globalIndex,
-                        onAppChange = onAppChange
-                    )
+                    val globalIndex = rowIndex * columns + indexInRow
+                    Box(
+                        modifier = Modifier.weight(1f),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        FavoriteAppItem(
+                            app = app,
+                            position = globalIndex,
+                            onAppChange = onAppChange
+                        )
+                    }
+                }
+                // Combler les cellules manquantes si la dernière ligne est incomplète
+                if (rowApps.size < columns) {
+                    repeat(columns - rowApps.size) {
+                        Spacer(modifier = Modifier.weight(1f))
+                    }
                 }
             }
         }
