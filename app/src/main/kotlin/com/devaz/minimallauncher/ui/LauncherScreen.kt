@@ -6,6 +6,7 @@ import android.graphics.drawable.Drawable
 import android.os.Build
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,13 +17,19 @@ import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -59,6 +66,8 @@ fun LauncherScreen() {
     val error by viewModel.error.observeAsState()
     var searchQuery by remember { mutableStateOf("") }
     val snackbarHostState = remember { SnackbarHostState() }
+    var contextMenuApp by remember { mutableStateOf<AppInfo?>(null) }
+    var contextMenuOpen by remember { mutableStateOf(false) }
     
     // Charger les apps au démarrage
     LaunchedEffect(Unit) {
@@ -114,14 +123,20 @@ fun LauncherScreen() {
             } else {
                 // Liste des applications
                 LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .navigationBarsPadding(),
                     verticalArrangement = Arrangement.spacedBy(8.dp),
                     contentPadding = PaddingValues(vertical = 8.dp)
                 ) {
                     items(apps) { appInfo ->
                         AppItem(
                             appInfo = appInfo,
-                            onClick = { launchApp(context, appInfo) }
+                            onClick = { launchApp(context, appInfo) },
+                            onLongClick = {
+                                contextMenuApp = appInfo
+                                contextMenuOpen = true
+                            }
                         )
                     }
                 }
@@ -132,17 +147,70 @@ fun LauncherScreen() {
                 hostState = snackbarHostState,
                 modifier = Modifier.align(Alignment.BottomCenter)
             )
+
+            // Menu contextuel au long-clic sur une app
+            contextMenuApp?.let { app ->
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .combinedClickable(
+                            onClick = { contextMenuOpen = false },
+                            onLongClick = {}
+                        )
+                ) {
+                    DropdownMenu(
+                        expanded = contextMenuOpen,
+                        onDismissRequest = { contextMenuOpen = false }
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Ouvrir") },
+                            onClick = {
+                                contextMenuOpen = false
+                                launchApp(context, app)
+                            },
+                            leadingIcon = {
+                                Icon(Icons.AutoMirrored.Filled.OpenInNew, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Informations de l'application") },
+                            onClick = {
+                                contextMenuOpen = false
+                                openAppInfo(context, app.packageName)
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.Info, contentDescription = null)
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Désinstaller") },
+                            onClick = {
+                                contextMenuOpen = false
+                                uninstallApp(context, app.packageName)
+                            },
+                            leadingIcon = {
+                                Icon(Icons.Default.Delete, contentDescription = null)
+                            }
+                        )
+                    }
+                }
+            }
         }
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AppItem(appInfo: AppInfo, onClick: () -> Unit) {
+fun AppItem(appInfo: AppInfo, onClick: () -> Unit, onLongClick: () -> Unit) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clip(MaterialTheme.shapes.medium),
+            .clip(MaterialTheme.shapes.medium)
+            .combinedClickable(
+                onClick = onClick,
+                onLongClick = onLongClick
+            ),
         verticalAlignment = Alignment.CenterVertically
     ) {
         // Icône de l'application

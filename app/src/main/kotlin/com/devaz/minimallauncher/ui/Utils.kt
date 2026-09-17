@@ -37,3 +37,31 @@ fun launchAppByPackage(context: Context, packageName: String) {
         e.printStackTrace()
     }
 }
+
+/**
+ * Ouvre les informations système de l'application (écran App info).
+ */
+fun openAppInfo(context: Context, packageName: String) {
+    try {
+        val intent = Intent(android.provider.Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
+            .setData(android.net.Uri.fromParts("package", packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
+
+/**
+ * Ouvre l'écran de désinstallation système de l'application.
+ */
+fun uninstallApp(context: Context, packageName: String) {
+    try {
+        val intent = Intent(Intent.ACTION_DELETE)
+            .setData(android.net.Uri.fromParts("package", packageName, null))
+            .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+        context.startActivity(intent)
+    } catch (e: Exception) {
+        e.printStackTrace()
+    }
+}
