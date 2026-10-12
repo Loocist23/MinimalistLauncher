@@ -7,6 +7,7 @@ import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.gestures.detectVerticalDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -27,9 +28,13 @@ import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -49,11 +54,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -522,38 +529,78 @@ fun ContactDrawerItem(contact: ContactInfo, onClick: () -> Unit) {
 
 /**
  * Élément d'application dans le tiroir.
+ * Long-clic : menu contextuel (informations de l'app, désinstallation).
  */
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AppDrawerItem(appInfo: AppInfo, onClick: () -> Unit) {
+    val context = LocalContext.current
+    val hapticFeedback = LocalHapticFeedback.current
+    var menuOpen by remember { mutableStateOf(false) }
     val stableAppInfo = remember(appInfo) { appInfo }
 
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(12.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Box(
+    Box {
+        Row(
             modifier = Modifier
-                .size(40.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small),
-            contentAlignment = Alignment.Center
+                .fillMaxWidth()
+                .combinedClickable(
+                    onClick = onClick,
+                    onLongClick = {
+                        hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                        menuOpen = true
+                    }
+                )
+                .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            AppIcon(
-                drawable = stableAppInfo.icon,
-                appName = stableAppInfo.appName,
-                packageName = stableAppInfo.packageName
-            )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(MaterialTheme.colorScheme.surfaceVariant, MaterialTheme.shapes.small),
+                contentAlignment = Alignment.Center
+            ) {
+                AppIcon(
+                    drawable = stableAppInfo.icon,
+                    appName = stableAppInfo.appName,
+                    packageName = stableAppInfo.packageName
+                )
+            }
+
+            Spacer(modifier = Modifier.width(12.dp))
+
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = stableAppInfo.appName,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+            }
         }
 
-        Spacer(modifier = Modifier.width(12.dp))
-
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = stableAppInfo.appName,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface
+        // Menu contextuel au long-clic, ancré sur l'item
+        DropdownMenu(
+            expanded = menuOpen,
+            onDismissRequest = { menuOpen = false }
+        ) {
+            DropdownMenuItem(
+                text = { Text("Informations de l'application") },
+                onClick = {
+                    menuOpen = false
+                    openAppInfo(context, stableAppInfo.packageName)
+                },
+                leadingIcon = {
+                    Icon(Icons.Default.Info, contentDescription = null)
+                }
+            )
+            DropdownMenuItem(
+                text = { Text("Désinstaller") },
+                onClick = {
+                    menuOpen = false
+                    uninstallApp(context, stableAppInfo.packageName)
+                },
+                leadingIcon = {
+                    Icon(Icons.Default.Delete, contentDescription = null)
+                }
             )
         }
     }

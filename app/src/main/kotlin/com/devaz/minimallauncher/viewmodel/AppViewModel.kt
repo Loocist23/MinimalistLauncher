@@ -215,4 +215,28 @@ class AppViewModel(application: Application) : AndroidViewModel(application) {
         allContactsCache = emptyList()
         loadApps()
     }
+
+    /**
+     * Rafraîchit la liste des applications depuis le PackageManager sans
+     * toucher à l'état de chargement (pas de LoadingScreen ni de spinner).
+     * Utilisé à chaque ouverture du tiroir pour voir les applications
+     * nouvellement installées sans relancer le launcher.
+     */
+    fun refreshAppsSilently() {
+        viewModelScope.launch {
+            try {
+                val appsList = withContext(Dispatchers.IO) {
+                    appRepository.getAllApps()
+                }
+                allAppsCache = sortAppsByUsage(appsList)
+                _apps.value = allAppsCache
+                _error.value = null
+                if (allAppsCache.isNotEmpty()) {
+                    preloadAppIcons(allAppsCache)
+                }
+            } catch (e: Exception) {
+                // En cas d'erreur, on conserve le cache existant
+            }
+        }
+    }
 }

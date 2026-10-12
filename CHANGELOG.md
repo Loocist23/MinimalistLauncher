@@ -1,5 +1,28 @@
 # Changelog — MinimalLauncher
 
+## [1.4.2] — 2026-10-12
+
+### Tiroir d'applications
+
+- Rechargement silencieux de la liste des apps à chaque ouverture du tiroir : une app fraîchement installée apparaît sans relancer le launcher (pas d'écran de chargement, icônes pré-chargées en arrière-plan)
+- Menu contextuel au long-clic sur une app du tiroir, avec retour haptique :
+  - "Informations de l'application" : ouvre l'écran système App info (permissions, stockage, forcer l'arrêt, effacer les données, notifications, désinstallation)
+  - "Désinstaller" : ouvre la confirmation système
+
+### Documentation
+
+- Mise à jour de la liste de tests : retrait des boutons supprimés en 1.3.0 (croix, retour en haut), ajout des tests pour le rechargement du tiroir, le menu contextuel long-clic, la recherche de contacts et l'écran de paramètres
+
+### Fichiers modifiés
+
+- `app/.../viewmodel/AppViewModel.kt` — `refreshAppsSilently()` : rechargement depuis le PackageManager sans toucher à l'état de chargement
+- `app/.../MainActivity.kt` — refresh silencieux dans `openDrawer()`
+- `app/.../ui/AppDrawer.kt` — `combinedClickable` + `DropdownMenu` sur `AppDrawerItem`
+- `app/build.gradle.kts` — bump versionCode 8 / versionName 1.4.2
+- `TEST_CHECKLIST.md` — tests à jour
+
+---
+
 ## [1.4.0] — 2026-09-16
 
 ### Améliorations

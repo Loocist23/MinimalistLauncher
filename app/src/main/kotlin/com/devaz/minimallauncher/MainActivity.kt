@@ -287,6 +287,8 @@ fun AppContent() {
     
     // Ouvrir le tiroir en swipant vers le haut depuis n'importe où sur l'écran
     fun openDrawer() {
+        // Recharger les apps en silence pour voir les installations/désinstallations récentes
+        viewModel.refreshAppsSilently()
         coroutineScope.launch {
             isInteracting.value = true
             drawerOffset.animateTo(
