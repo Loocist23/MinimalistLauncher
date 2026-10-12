@@ -18,7 +18,7 @@ android {
         applicationId = "com.devaz.minimallauncher"
         minSdk = 29  // Android 10+
         targetSdk = 36
-        versionCode = 8
+        versionCode = 9
         versionName = "1.4.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
